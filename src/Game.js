@@ -1,24 +1,30 @@
 import React, { Component } from 'react';
-const THREE = window.THREE;
+//const THREE = window.THREE;
+import * as THREE from 'three';
+import Running from './assets/Running.fbx';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
 
 	componentDidMount(){
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
-		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, jumping;
+		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane = 0, clock, jumping = false;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
 		let rollingSpeed=0.008;
-		let worldRadius=26;
-		let heroRadius=0.2;
-		let heroBaseY=1.8;
-		let bounceValue=0.1;
-		let gravity=0.005;
-		let leftLane=-1;
-		let rightLane=1;
+		let worldRadius=26.7;
+		let heroRadius=0.1;
+		let heroBaseY=2.2;
+		let bounceValue=0.2;
+		let gravity=0.0041;
+		let leftLane=-0.3;
+		let rightLane=0.3;
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
 		let particleCount=20;
 		let explosionPower =1.06;
+		let right = 0;
+
+		let playerObject, playerMixer, playerLoader, action, isLoaded = false;
 		
 		init();
 
@@ -53,11 +59,13 @@ class Game extends Component {
 			dom = document.getElementById('game');
 			dom.appendChild(renderer.domElement);
 
-			createTreesPool();
+			init_Loader();
+
+			//createTreesPool();
 			addWorld();
-			addHero();
+			//addHero();
 			addLight();
-			addExplosion();
+			//addExplosion();
 			
 			camera.position.z = 6.5;
 			camera.position.y = 2.5;
@@ -66,30 +74,54 @@ class Game extends Component {
 
 			document.onkeydown = handleKeyDown;
 			
-			scoreText = document.createElement('div');
-			scoreText.style.position = 'absolute';
-			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-			scoreText.style.width = 100;
-			scoreText.style.height = 100;
-			//scoreText.style.backgroundColor = "blue";
-			scoreText.innerHTML = "0";
-			scoreText.style.top = 50 + 'px';
-			scoreText.style.left = 10 + 'px';
-			document.body.appendChild(scoreText);
+			// scoreText = document.createElement('div');
+			// scoreText.style.position = 'absolute';
+			// //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+			// scoreText.style.width = 100;
+			// scoreText.style.height = 100;
+			// //scoreText.style.backgroundColor = "blue";
+			// scoreText.innerHTML = "0";
+			// scoreText.style.top = 50 + 'px';
+			// scoreText.style.left = 10 + 'px';
+			// document.body.appendChild(scoreText);
 			
-			let infoText = document.createElement('div');
-			infoText.style.position = 'absolute';
-			infoText.style.width = 100;
-			infoText.style.height = 100;
-			infoText.style.backgroundColor = "yellow";
-			infoText.innerHTML = "UP - Jump, Left/Right - Move";
-			infoText.style.top = 10 + 'px';
-			infoText.style.left = 10 + 'px';
-			document.body.appendChild(infoText);
+			// let infoText = document.createElement('div');
+			// infoText.style.position = 'absolute';
+			// infoText.style.width = 100;
+			// infoText.style.height = 100;
+			// infoText.style.backgroundColor = "yellow";
+			// infoText.innerHTML = "UP - Jump, Left/Right - Move";
+			// infoText.style.top = 10 + 'px';
+			// infoText.style.left = 10 + 'px';
+			// document.body.appendChild(infoText);
+		}
+
+		/**
+		 * Function to load assests
+		 */
+		function init_Loader(){
+			playerLoader = new FBXLoader();
+			playerLoader.load(Running, playerLoad);
+		}
+
+		function playerLoad(object3d){
+			playerObject = object3d;
+			playerObject.scale.set(0.001,0.001,0.001);
+			playerObject.position.y = 2.3;
+			playerObject.position.z = 6.12;
+			playerObject.rotateY(185.25);
+			playerMixer = new THREE.AnimationMixer(object3d);
+			console.log(object3d);
+			action = playerMixer.clipAction(object3d.animations[0]);
+			action.play();
+			playerMixer.update(0);
+			playerObject.updateMatrix();
+			scene.add(playerObject);
+			isLoaded = true; //prevents error while updating if the character is not loaded
 		}
 
 		function addExplosion(){
-			particleGeometry = new THREE.Geometry();
+			particleGeometry = new THREE.BufferGeometry();
 			for (let i = 0; i < particleCount; i ++ ) {
 				let vertex = new THREE.Vector3();
 				particleGeometry.vertices.push( vertex );
@@ -113,7 +145,7 @@ class Game extends Component {
 		}
 
 		function handleKeyDown(keyEvent){
-			if(jumping)return;
+			//if(jumping)return;
 			let validMove=true;
 			if ( keyEvent.keyCode === 37) {//left
 				if(currentLane == middleLane){
@@ -124,6 +156,7 @@ class Game extends Component {
 					validMove=false;	
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
+				right = 0.3;
 				if(currentLane==middleLane){
 					currentLane=rightLane;
 				}else if(currentLane==leftLane){
@@ -133,16 +166,15 @@ class Game extends Component {
 				}
 			}else{
 				if ( keyEvent.keyCode === 38){//up, jump
-					bounceValue=0.1;
-					jumping=true;
+					playerObject.position.y += 0.25;
 				}
 				validMove=false;
 			}
 			//heroSphere.position.x=currentLane;
-			if(validMove){
-				jumping=true;
-				bounceValue=0.06;
-			}
+			// if(validMove){
+			// 	jumping=true;
+			// 	bounceValue=0.07;
+			// }
 		}
 
 		function addHero(){
@@ -154,55 +186,55 @@ class Game extends Component {
 			heroSphere.castShadow=true;
 			scene.add( heroSphere );
 			heroSphere.position.y=heroBaseY;
-			heroSphere.position.z=4.8;
+			heroSphere.position.z=5.7;
 			currentLane=middleLane;
 			heroSphere.position.x=currentLane;
 		}
 
 		function addWorld(){
-			let sides=40;
+			let sides=100;
 			let tiers=40;
 			let sphereGeometry = new THREE.SphereGeometry( worldRadius, sides,tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xfffafa ,shading:THREE.FlatShading} )
+			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x447741 ,shading:THREE.FlatShading} )
 			
-			let vertexIndex;
-			let vertexVector= new THREE.Vector3();
-			let nextVertexVector= new THREE.Vector3();
-			let firstVertexVector= new THREE.Vector3();
-			let offset= new THREE.Vector3();
-			let currentTier=1;
-			let lerpValue=0.5;
-			let heightValue;
-			let maxHeight=0.07;
-			for(let j=1;j<tiers-2;j++){
-				currentTier=j;
-				for(let i=0;i<sides;i++){
-					vertexIndex=(currentTier*sides)+1;
-					vertexVector=sphereGeometry.vertices[i+vertexIndex].clone();
-					if(j%2!==0){
-						if(i==0){
-							firstVertexVector=vertexVector.clone();
-						}
-						nextVertexVector=sphereGeometry.vertices[i+vertexIndex+1].clone();
-						if(i==sides-1){
-							nextVertexVector=firstVertexVector;
-						}
-						lerpValue=(Math.random()*(0.75-0.25))+0.25;
-						vertexVector.lerp(nextVertexVector,lerpValue);
-					}
-					heightValue=(Math.random()*maxHeight)-(maxHeight/2);
-					offset=vertexVector.clone().normalize().multiplyScalar(heightValue);
-					sphereGeometry.vertices[i+vertexIndex]=(vertexVector.add(offset));
-				}
-			}
+			// let vertexIndex;
+			// let vertexVector= new THREE.Vector3();
+			// let nextVertexVector= new THREE.Vector3();
+			// let firstVertexVector= new THREE.Vector3();
+			// let offset= new THREE.Vector3();
+			// let currentTier=1;
+			// let lerpValue=0.5;
+			// let heightValue;
+			// let maxHeight=0.07;
+			// for(let j=1;j<tiers-2;j++){
+			// 	currentTier=j;
+			// 	for(let i=0;i<sides;i++){
+			// 		vertexIndex=(currentTier*sides)+1;
+			// 		vertexVector=sphereGeometry.vertices[i+vertexIndex].clone();
+			// 		if(j%2!==0){
+			// 			if(i==0){
+			// 				firstVertexVector=vertexVector.clone();
+			// 			}
+			// 			nextVertexVector=sphereGeometry.vertices[i+vertexIndex+1].clone();
+			// 			if(i==sides-1){
+			// 				nextVertexVector=firstVertexVector;
+			// 			}
+			// 			lerpValue=(Math.random()*(0.75-0.25))+0.25;
+			// 			vertexVector.lerp(nextVertexVector,lerpValue);
+			// 		}
+			// 		heightValue=(Math.random()*maxHeight)-(maxHeight/2);
+			// 		offset=vertexVector.clone().normalize().multiplyScalar(heightValue);
+			// 		sphereGeometry.vertices[i+vertexIndex]=(vertexVector.add(offset));
+			// 	}
+			// }
 			rollingGroundSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
 			rollingGroundSphere.receiveShadow = true;
 			rollingGroundSphere.castShadow=false;
 			rollingGroundSphere.rotation.z=-Math.PI/2;
 			scene.add( rollingGroundSphere );
-			rollingGroundSphere.position.y=-24;
+			rollingGroundSphere.position.y=-24.4;
 			rollingGroundSphere.position.z=2;
-			addWorldTrees();
+			//addWorldTrees();
 		}
 
 		function addLight(){
@@ -345,24 +377,30 @@ class Game extends Component {
 			//stats.update();
 				//animate
 				rollingGroundSphere.rotation.x += rollingSpeed;
-				heroSphere.rotation.x -= heroRollingSpeed;
-				if(heroSphere.position.y<=heroBaseY){
-					jumping=false;
-					bounceValue=(Math.random()*0.04)+0.005;
-				}
-				heroSphere.position.y+=bounceValue;
-				heroSphere.position.x=THREE.Math.lerp(heroSphere.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
-				bounceValue-=gravity;
+				// if(playerObject.position.y<=heroBaseY){
+				// 	jumping=false;
+				// 	bounceValue=0.007//(Math.random()*0.04)+0.005;
+				// }
+				// playerObject.position.y+=bounceValue;
+				// playerObject.position.x=THREE.Math.lerp(playerObject.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
+				// bounceValue-=gravity;
 				if(clock.getElapsedTime()>treeReleaseInterval){
 					clock.start();
 					addPathTree();
-					if(!hasCollided){
-					score+=2*treeReleaseInterval;
-					scoreText.innerHTML=score.toString();
+						if(!hasCollided){
+						// score+=2*treeReleaseInterval;
+						// scoreText.innerHTML=score.toString();
+						}
 				}
+				if(isLoaded){
+					if(playerObject.position.y > 2.3){
+						playerObject.position.y -= 0.005
+					}
+					playerObject.position.x = THREE.Math.lerp(playerObject.position.x, currentLane, 0.05); //smooth transing while changing lanes
+					playerMixer.update(0.02); //make Aj walking animation
 				}
-				doTreeLogic();
-				doExplosionLogic();
+				// doTreeLogic();
+				// doExplosionLogic();
 				render();
 			requestAnimationFrame(update);//request next update
 		}
