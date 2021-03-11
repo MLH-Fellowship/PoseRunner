@@ -2,6 +2,12 @@ import React, { Component } from 'react';
 //const THREE = window.THREE;
 import * as THREE from 'three';
 import Running from './assets/Running.fbx';
+import bk from './assets/skies/scottstorm_bk.png';
+import up from './assets/skies/scottstorm_up.png';
+import dn from './assets/skies/scottstorm_dn.png';
+import lf from './assets/skies/scottstorm_lf.png';
+import rt from './assets/skies/scottstorm_rt.png';
+import ft from './assets/skies/scottstorm_ft.png';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
@@ -58,7 +64,17 @@ class Game extends Component {
 			renderer.setSize( sceneWidth, sceneHeight );
 			dom = document.getElementById('game');
 			dom.appendChild(renderer.domElement);
-
+			var cubeTextureLoader = new THREE.CubeTextureLoader();
+			/* cubeTextureLoader.setPath( 'assets/skies/' ); */
+			var cubeTexture = cubeTextureLoader.load( [
+				ft, bk,
+				up, dn,
+				rt, lf
+			], ()=>{
+				scene.background = cubeTexture;
+			} );
+			scene.background = cubeTexture;
+			console.log(scene.background);
 			init_Loader();
 
 			//createTreesPool();
@@ -195,7 +211,7 @@ class Game extends Component {
 			let sides=100;
 			let tiers=40;
 			let sphereGeometry = new THREE.SphereGeometry( worldRadius, sides,tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x447741 ,shading:THREE.FlatShading} )
+			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x06b011 ,shading:THREE.FlatShading} )
 			
 			// let vertexIndex;
 			// let vertexVector= new THREE.Vector3();
@@ -383,7 +399,7 @@ class Game extends Component {
 				// }
 				// playerObject.position.y+=bounceValue;
 				// playerObject.position.x=THREE.Math.lerp(playerObject.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
-				// bounceValue-=gravity;
+				// bounceValue-=gravity;	
 				if(clock.getElapsedTime()>treeReleaseInterval){
 					clock.start();
 					addPathTree();
