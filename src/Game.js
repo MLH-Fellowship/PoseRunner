@@ -14,7 +14,7 @@ class Game extends Component {
 
 	componentDidMount(){
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
-		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane = 0, clock, jumping = false;
+		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, jumping = false;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
 		let rollingSpeed=0.008;
 		let worldRadius=26.7;
@@ -22,8 +22,8 @@ class Game extends Component {
 		let heroBaseY=2.2;
 		let bounceValue=0.2;
 		let gravity=0.0041;
-		let leftLane=-0.3;
-		let rightLane=0.3;
+		let leftLane=-1.25;
+		let rightLane=1.25;
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
 		let particleCount=20;
@@ -74,17 +74,16 @@ class Game extends Component {
 				scene.background = cubeTexture;
 			} );
 			scene.background = cubeTexture;
-			console.log(scene.background);
 			init_Loader();
 
-			//createTreesPool();
+			createTreesPool();
 			addWorld();
 			//addHero();
 			addLight();
 			//addExplosion();
 			
-			camera.position.z = 6.5;
-			camera.position.y = 2.5;
+			camera.position.z = 7.5;
+			camera.position.y = 3.15;
 			
 			window.addEventListener('resize', onWindowResize, false);//resize callback
 
@@ -118,16 +117,19 @@ class Game extends Component {
 		function init_Loader(){
 			playerLoader = new FBXLoader();
 			playerLoader.load(Running, playerLoad);
+			jumping=false;
+			currentLane=middleLane;
 		}
 
 		function playerLoad(object3d){
 			playerObject = object3d;
-			playerObject.scale.set(0.001,0.001,0.001);
+			playerObject.scale.set(0.0025,0.0025,0.0025);
 			playerObject.position.y = 2.3;
-			playerObject.position.z = 6.12;
+			playerObject.position.z = 6;
 			playerObject.rotateY(185.25);
+			playerObject.receiveShadow = true;
+			playerObject.castShadow = true;
 			playerMixer = new THREE.AnimationMixer(object3d);
-			console.log(object3d);
 			action = playerMixer.clipAction(object3d.animations[0]);
 			action.play();
 			playerMixer.update(0);
@@ -193,56 +195,11 @@ class Game extends Component {
 			// }
 		}
 
-		function addHero(){
-			let sphereGeometry = new THREE.DodecahedronGeometry( heroRadius, 1);
-			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xe5f2f2 ,shading:THREE.FlatShading} )
-			jumping=false;
-			heroSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-			heroSphere.receiveShadow = true;
-			heroSphere.castShadow=true;
-			scene.add( heroSphere );
-			heroSphere.position.y=heroBaseY;
-			heroSphere.position.z=5.7;
-			currentLane=middleLane;
-			heroSphere.position.x=currentLane;
-		}
-
 		function addWorld(){
 			let sides=100;
 			let tiers=40;
 			let sphereGeometry = new THREE.SphereGeometry( worldRadius, sides,tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x06b011 ,shading:THREE.FlatShading} )
-			
-			// let vertexIndex;
-			// let vertexVector= new THREE.Vector3();
-			// let nextVertexVector= new THREE.Vector3();
-			// let firstVertexVector= new THREE.Vector3();
-			// let offset= new THREE.Vector3();
-			// let currentTier=1;
-			// let lerpValue=0.5;
-			// let heightValue;
-			// let maxHeight=0.07;
-			// for(let j=1;j<tiers-2;j++){
-			// 	currentTier=j;
-			// 	for(let i=0;i<sides;i++){
-			// 		vertexIndex=(currentTier*sides)+1;
-			// 		vertexVector=sphereGeometry.vertices[i+vertexIndex].clone();
-			// 		if(j%2!==0){
-			// 			if(i==0){
-			// 				firstVertexVector=vertexVector.clone();
-			// 			}
-			// 			nextVertexVector=sphereGeometry.vertices[i+vertexIndex+1].clone();
-			// 			if(i==sides-1){
-			// 				nextVertexVector=firstVertexVector;
-			// 			}
-			// 			lerpValue=(Math.random()*(0.75-0.25))+0.25;
-			// 			vertexVector.lerp(nextVertexVector,lerpValue);
-			// 		}
-			// 		heightValue=(Math.random()*maxHeight)-(maxHeight/2);
-			// 		offset=vertexVector.clone().normalize().multiplyScalar(heightValue);
-			// 		sphereGeometry.vertices[i+vertexIndex]=(vertexVector.add(offset));
-			// 	}
-			// }
+			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x06b011 ,flatShading:THREE.FlatShading} )
 			rollingGroundSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
 			rollingGroundSphere.receiveShadow = true;
 			rollingGroundSphere.castShadow=false;
@@ -250,7 +207,7 @@ class Game extends Component {
 			scene.add( rollingGroundSphere );
 			rollingGroundSphere.position.y=-24.4;
 			rollingGroundSphere.position.z=2;
-			//addWorldTrees();
+			addWorldTrees();
 		}
 
 		function addLight(){
@@ -296,6 +253,14 @@ class Game extends Component {
 				//console.log("add tree");
 				treesInPath.push(newTree);
 				sphericalHelper.set( worldRadius - 0.3, pathAngleValues[row], - rollingGroundSphere.rotation.x+4 );
+
+				newTree.position.setFromSpherical( sphericalHelper );
+			let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
+			let treeVector = newTree.position.clone().normalize();
+			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
+			newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+			
+			rollingGroundSphere.add(newTree);
 			}else{
 				newTree=createTree();
 				let forestAreaAngle = 0; //[1.52,1.57,1.62];
@@ -306,87 +271,33 @@ class Game extends Component {
 				}
 				sphericalHelper.set( worldRadius - 0.3, forestAreaAngle, row );
 			}
-			newTree.position.setFromSpherical( sphericalHelper );
-			let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
-			let treeVector = newTree.position.clone().normalize();
-			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
-			newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+			// newTree.position.setFromSpherical( sphericalHelper );
+			// let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
+			// let treeVector = newTree.position.clone().normalize();
+			// newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
+			// newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
 			
-			rollingGroundSphere.add(newTree);
+			// rollingGroundSphere.add(newTree);
 		}
 
 		function createTree(){
 			let sides=8;
 			let tiers=6;
-			let scalarMultiplier=(Math.random()*(0.25-0.1))+0.05;
-			let treeGeometry = new THREE.ConeGeometry( 0.5, 1, sides, tiers);
-			let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,shading:THREE.FlatShading  } );
-			blowUpTree(treeGeometry.vertices,sides,0,scalarMultiplier);
-			tightenTree(treeGeometry.vertices,sides,1);
-			blowUpTree(treeGeometry.vertices,sides,2,scalarMultiplier*1.1,true);
-			tightenTree(treeGeometry.vertices,sides,3);
-			blowUpTree(treeGeometry.vertices,sides,4,scalarMultiplier*1.2);
-			tightenTree(treeGeometry.vertices,sides,5);
+			let treeGeometry = new THREE.ConeGeometry( 0.27, 1, sides, tiers);
+			let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading  } );
 			let treeTop = new THREE.Mesh( treeGeometry, treeMaterial );
 			treeTop.castShadow=true;
 			treeTop.receiveShadow=false;
 			treeTop.position.y=0.9;
-			treeTop.rotation.y=(Math.random()*(Math.PI));
+			// treeTop.rotation.y=(Math.random()*(Math.PI));
 			let treeTrunkGeometry = new THREE.CylinderGeometry( 0.1, 0.1,0.5);
-			let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,shading:THREE.FlatShading  } );
+			let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,flatShading:THREE.FlatShading  } );
 			let treeTrunk = new THREE.Mesh( treeTrunkGeometry, trunkMaterial );
 			treeTrunk.position.y=0.25;
 			let tree =new THREE.Object3D();
 			tree.add(treeTrunk);
 			tree.add(treeTop);
 			return tree;
-		}
-
-		function blowUpTree(vertices,sides,currentTier,scalarMultiplier,odd){
-			let vertexIndex;
-			let vertexVector= new THREE.Vector3();
-			let midPointVector=vertices[0].clone();
-			let offset;
-			for(let i=0;i<sides;i++){
-				vertexIndex=(currentTier*sides)+1;
-				vertexVector=vertices[i+vertexIndex].clone();
-				midPointVector.y=vertexVector.y;
-				offset=vertexVector.sub(midPointVector);
-				if(odd){
-					if(i%2===0){
-						offset.normalize().multiplyScalar(scalarMultiplier/6);
-						vertices[i+vertexIndex].add(offset);
-					}else{
-						offset.normalize().multiplyScalar(scalarMultiplier);
-						vertices[i+vertexIndex].add(offset);
-						vertices[i+vertexIndex].y=vertices[i+vertexIndex+sides].y+0.05;
-					}
-				}else{
-					if(i%2!==0){
-						offset.normalize().multiplyScalar(scalarMultiplier/6);
-						vertices[i+vertexIndex].add(offset);
-					}else{
-						offset.normalize().multiplyScalar(scalarMultiplier);
-						vertices[i+vertexIndex].add(offset);
-						vertices[i+vertexIndex].y=vertices[i+vertexIndex+sides].y+0.05;
-					}
-				}
-			}
-		}
-
-		function tightenTree(vertices,sides,currentTier){
-			let vertexIndex;
-			let vertexVector= new THREE.Vector3();
-			let midPointVector=vertices[0].clone();
-			let offset;
-			for(let i=0;i<sides;i++){
-				vertexIndex=(currentTier*sides)+1;
-				vertexVector=vertices[i+vertexIndex].clone();
-				midPointVector.y=vertexVector.y;
-				offset=vertexVector.sub(midPointVector);
-				offset.normalize().multiplyScalar(0.06);
-				vertices[i+vertexIndex].sub(offset);
-			}
 		}
 
 		function update(){
@@ -415,7 +326,7 @@ class Game extends Component {
 					playerObject.position.x = THREE.Math.lerp(playerObject.position.x, currentLane, 0.05); //smooth transing while changing lanes
 					playerMixer.update(0.02); //make Aj walking animation
 				}
-				// doTreeLogic();
+				 doTreeLogic();
 				// doExplosionLogic();
 				render();
 			requestAnimationFrame(update);//request next update
@@ -428,13 +339,13 @@ class Game extends Component {
 			treesInPath.forEach( function ( element, index ) {
 				oneTree=treesInPath[ index ];
 				treePos.setFromMatrixPosition( oneTree.matrixWorld );
-				if(treePos.z>6 &&oneTree.visible){//gone out of our view zone
+				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
-					if(treePos.distanceTo(heroSphere.position)<=0.6){
-						console.log("hit");
+					if(treePos.distanceTo(playerObject.position)<= 0.65){
+						console.log(treePos.distanceTo(playerObject.position));
 						hasCollided=true;
-						explode();
+						//explode();
 					}
 				}
 			});
@@ -445,7 +356,7 @@ class Game extends Component {
 				treesInPath.splice(fromWhere,1);
 				treesPool.push(oneTree);
 				oneTree.visible=false;
-				console.log("remove tree");
+				//console.log("remove tree");
 			});
 		}
 
