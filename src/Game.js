@@ -253,14 +253,6 @@ class Game extends Component {
 				//console.log("add tree");
 				treesInPath.push(newTree);
 				sphericalHelper.set( worldRadius - 0.3, pathAngleValues[row], - rollingGroundSphere.rotation.x+4 );
-
-				newTree.position.setFromSpherical( sphericalHelper );
-			let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
-			let treeVector = newTree.position.clone().normalize();
-			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
-			newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
-			
-			rollingGroundSphere.add(newTree);
 			}else{
 				newTree=createTree();
 				let forestAreaAngle = 0; //[1.52,1.57,1.62];
@@ -271,13 +263,13 @@ class Game extends Component {
 				}
 				sphericalHelper.set( worldRadius - 0.3, forestAreaAngle, row );
 			}
-			// newTree.position.setFromSpherical( sphericalHelper );
-			// let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
-			// let treeVector = newTree.position.clone().normalize();
-			// newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
-			// newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+			newTree.position.setFromSpherical( sphericalHelper );
+			let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
+			let treeVector = newTree.position.clone().normalize();
+			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
+			newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
 			
-			// rollingGroundSphere.add(newTree);
+			rollingGroundSphere.add(newTree);
 		}
 
 		function createTree(){
