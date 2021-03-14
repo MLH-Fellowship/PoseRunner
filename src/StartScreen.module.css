@@ -1,0 +1,76 @@
+.startPage{
+  background-image: url(./images/startbg.png);
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.css_typing{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.css_typing p {
+  border-right: .15em solid orange;
+  font-family: "Courier";
+  font-size: 5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+  margin: 3rem 0 0 0;
+}
+
+.css_typing p:nth-child(1) {
+  width: 6em;
+  animation: type 2s steps(50, end);
+  animation-fill-mode: forwards;
+}
+
+.test p {
+  margin-top: 1rem;
+  font-size: 2.5rem;
+  font-family: "Courier";
+  text-align: center;
+  animation: fadein 10s;
+}
+
+.howto{
+  font-size: xx-large;
+  font-family: "Courier";
+}
+
+.fe_pulse {
+  margin-top: 1rem;
+  font-size: 5rem;
+  font-family: "Courier";
+  animation-name: pulse;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); }
+  50% { transform: scale(0.85); }
+  to { transform: scale(1); }
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes type {
+  0% {
+    width: 0;
+  }
+  99.9% {
+    border-right: .15em solid orange;
+  }
+  100% {
+    border: none;
+  }
+}
