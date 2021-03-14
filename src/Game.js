@@ -12,7 +12,12 @@ import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
 
+	constructor(props){
+		super(props);
+	}
+
 	componentDidMount(){
+		let gameProp = this;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
 		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, jumping = false;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
@@ -337,6 +342,7 @@ class Game extends Component {
 					if(treePos.distanceTo(playerObject.position)<= 0.65){
 						console.log(treePos.distanceTo(playerObject.position));
 						hasCollided=true;
+						gameProp.props.showEnd();
 						//explode();
 					}
 				}
@@ -385,8 +391,8 @@ class Game extends Component {
 		}
 
 		function gameOver () {
-			//cancelAnimationFrame( globalRenderID );
-			//window.clearInterval( powerupSpawnIntervalID );
+			// cancelAnimationFrame( globalRenderID );
+			// window.clearInterval( powerupSpawnIntervalID );
 		}
 		function onWindowResize() {
 			//resize & align
