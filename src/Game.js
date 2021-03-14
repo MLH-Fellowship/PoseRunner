@@ -35,6 +35,8 @@ class Game extends Component {
 		let explosionPower =1.06;
 		let right = 0;
 
+		let vertexArr = [];
+
 		let playerObject, playerMixer, playerLoader, action, isLoaded = false;
 		
 		init();
@@ -85,7 +87,7 @@ class Game extends Component {
 			addWorld();
 			//addHero();
 			addLight();
-			//addExplosion();
+			addExplosion();
 			
 			camera.position.z = 7.5;
 			camera.position.y = 3.15;
@@ -145,17 +147,26 @@ class Game extends Component {
 
 		function addExplosion(){
 			particleGeometry = new THREE.BufferGeometry();
-			for (let i = 0; i < particleCount; i ++ ) {
-				let vertex = new THREE.Vector3();
-				particleGeometry.vertices.push( vertex );
+			let pnt = 50;
+			let positions = [];
+			const n = 2, n2 = n / 2;
+			for ( let i = 0; i < pnt; i ++ ) {
+				const x = Math.random() * n - n2;
+				const y = Math.random() * n - n2;
+				const z = Math.random() * n - n2;
+
+				positions.push( x, y, z );
 			}
+			const vertices = new Float32Array(positions);
+			particleGeometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
 			let pMaterial = new THREE.ParticleBasicMaterial({
-				color: 0xfffafa,
-				size: 0.2
+				color: 0x006400,
+				size: 0.1
 			});
 			particles = new THREE.Points( particleGeometry, pMaterial );
 			scene.add( particles );
-			particles.visible=false;
+			particles.visible=true;
+			console.log(particleGeometry.getAttribute("position"));
 		}
 
 		function createTreesPool(){
@@ -323,8 +334,8 @@ class Game extends Component {
 					playerObject.position.x = THREE.Math.lerp(playerObject.position.x, currentLane, 0.05); //smooth transing while changing lanes
 					playerMixer.update(0.02); //make Aj walking animation
 				}
-				 doTreeLogic();
-				// doExplosionLogic();
+				doTreeLogic();
+				doExplosionLogic();
 				render();
 			requestAnimationFrame(update);//request next update
 		}
@@ -340,10 +351,9 @@ class Game extends Component {
 					treesToRemove.push(oneTree);
 				}else{//check collision
 					if(treePos.distanceTo(playerObject.position)<= 0.65){
-						console.log(treePos.distanceTo(playerObject.position));
 						hasCollided=true;
-						gameProp.props.showEnd();
-						//explode();
+						//gameProp.props.showEnd();
+						explode();
 					}
 				}
 			});
@@ -360,13 +370,32 @@ class Game extends Component {
 
 		function doExplosionLogic(){
 			if(!particles.visible)return;
-			for (let i = 0; i < particleCount; i ++ ) {
-				particleGeometry.vertices[i].multiplyScalar(explosionPower);
+			// for (let i = 0; i < particleCount; i ++ ) {
+			// 	particleGeometry.vertices[i].multiplyScalar(explosionPower);
+			// }
+			// if(vertexArr.length !=  0){
+			// 	vertexArr = vertexArr.map(ele => {
+			// 		return ele * explosionPower
+			// 	});
+			// 	console.log(vertexArr);
+			// }
+			// particleGeometry.setFromPoints(vertexArr);
+			vertexArr = [];
+			for (let i = 0; i < 20; i ++ ) {
+				let vertex = new THREE.Vector3();
+				vertex.x = -0.4+Math.random();
+				vertex.y = -0.2+Math.random();
+				vertex.z = -0.2+Math.random();
+				vertexArr.push(vertex);
 			}
+			//console.log(vertexArr);
+			particleGeometry.setFromPoints(vertexArr);
+
 			if(explosionPower>1.005){
-				explosionPower-=0.001;
+				explosionPower-=0.0015;
 			}else{
 				particles.visible=false;
+				console.log("Not explode");
 			}
 			particleGeometry.verticesNeedUpdate = true;
 		}
@@ -374,14 +403,17 @@ class Game extends Component {
 		function explode(){
 			particles.position.y=2;
 			particles.position.z=4.8;
-			particles.position.x=heroSphere.position.x;
-			for (let i = 0; i < particleCount; i ++ ) {
+			particles.position.x=playerObject.position.x;
+			vertexArr = [];
+			for (let i = 0; i < 20; i ++ ) {
 				let vertex = new THREE.Vector3();
-				vertex.x = -0.2+Math.random() * 0.4;
-				vertex.y = -0.2+Math.random() * 0.4 ;
-				vertex.z = -0.2+Math.random() * 0.4;
-				particleGeometry.vertices[i]=vertex;
+				vertex.x = -0.4+Math.random();
+				vertex.y = -0.2+Math.random();
+				vertex.z = -0.2+Math.random();
+				vertexArr.push(vertex);
 			}
+			//console.log(vertexArr);
+			particleGeometry.setFromPoints(vertexArr);
 			explosionPower=1.07;
 			particles.visible=true;
 		}
