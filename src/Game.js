@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 //const THREE = window.THREE;
 import * as THREE from 'three';
 import Running from './assets/Running.fbx';
+import Jumping from './assets/Jump2.fbx';
 import bk from './assets/skies/scottstorm_bk.png';
 import up from './assets/skies/scottstorm_up.png';
 import dn from './assets/skies/scottstorm_dn.png';
@@ -19,7 +20,7 @@ class Game extends Component {
 	componentDidMount(){
 		let gameProp = this;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
-		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, jumping = false;
+		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
 		let rollingSpeed=0.008;
 		let worldRadius=26.7;
@@ -37,7 +38,7 @@ class Game extends Component {
 
 		let vertexArr = [];
 
-		let playerObject, playerMixer, playerLoader, action, isLoaded = false;
+		let playerObject, playerMixer, playerLoader, run, jump, isLoaded = false;
 		
 		init();
 
@@ -64,7 +65,7 @@ class Game extends Component {
 			scene = new THREE.Scene();//the 3d scene
 			scene.fog = new THREE.FogExp2( 0xf0fff0, 0.14 );
 			camera = new THREE.PerspectiveCamera( 60, sceneWidth / sceneHeight, 0.1, 1000 );//perspective camera
-			renderer = new THREE.WebGLRenderer({alpha:true});//renderer with transparent backdrop
+			renderer = new THREE.WebGLRenderer({alpha:true, antialias: true});//renderer with transparent backdrop
 			renderer.setClearColor(0xfffafa, 1); 
 			renderer.shadowMap.enabled = true;//enable shadow
 			renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -124,7 +125,6 @@ class Game extends Component {
 		function init_Loader(){
 			playerLoader = new FBXLoader();
 			playerLoader.load(Running, playerLoad);
-			jumping=false;
 			currentLane=middleLane;
 		}
 
@@ -137,8 +137,14 @@ class Game extends Component {
 			playerObject.receiveShadow = true;
 			playerObject.castShadow = true;
 			playerMixer = new THREE.AnimationMixer(object3d);
-			action = playerMixer.clipAction(object3d.animations[0]);
-			action.play();
+			run = playerMixer.clipAction(object3d.animations[0]);
+			run.play();
+
+			const jumpLoader = new FBXLoader();
+			jumpLoader.load(Jumping, function(object) {
+				jump = playerMixer.clipAction(object.animations[0], object3d);
+			})
+
 			playerMixer.update(0);
 			playerObject.updateMatrix();
 			scene.add(playerObject);
@@ -199,8 +205,10 @@ class Game extends Component {
 					validMove=false;	
 				}
 			}else{
-				if ( keyEvent.keyCode === 38){//up, jump
+				if ( keyEvent.keyCode === 38 && canJump === true){//up, jump
+					canJump = false;
 					playerObject.position.y += 0.25;
+					playOnClick(run, 0.1, jump, 0.1);
 				}
 				validMove=false;
 			}
@@ -211,6 +219,21 @@ class Game extends Component {
 			// }
 		}
 
+		function playOnClick(from, fSpeed, to, tSpeed) {
+			to.setLoop(THREE.LoopOnce);
+			to.reset();
+			to.play();
+
+			from.crossFadeTo(to, fSpeed, true);
+
+			setTimeout(function () {
+				// Switch from jumping animation to running animation
+				from.enabled = true;
+				to.crossFadeTo(from, tSpeed, true);
+				canJump = true;
+			}, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
+		}
+  
 		function addWorld(){
 			let sides=100;
 			let tiers=40;
@@ -350,7 +373,7 @@ class Game extends Component {
 				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
-					if(treePos.distanceTo(playerObject.position)<= 0.65){
+					if(isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						hasCollided=true;
 						//gameProp.props.showEnd();
 						explode();
