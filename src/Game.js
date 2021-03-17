@@ -227,7 +227,7 @@ class Game extends Component {
 			from.crossFadeTo(to, fSpeed, true);
 
 			setTimeout(function () {
-				// Switch from waving animation to standing animation
+				// Switch from jumping animation to running animation
 				from.enabled = true;
 				to.crossFadeTo(from, tSpeed, true);
 				canJump = true;
