@@ -18,24 +18,18 @@ class Game extends Component {
 	}
 
 	componentDidMount(){
-		let gameProp = this;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
 		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
-		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
+		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided = true;
 		let rollingSpeed=0.008;
 		let worldRadius=26.7;
 		let heroRadius=0.1;
-		let heroBaseY=2.2;
-		let bounceValue=0.2;
-		let gravity=0.0041;
 		let leftLane=-1.25;
 		let rightLane=1.25;
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
-		let particleCount=20;
 		let explosionPower =1.06;
-		let right = 0;
-		let lives = 5;
+		let lives = 3;
 
 		let vertexArr = [];
 
@@ -52,7 +46,6 @@ class Game extends Component {
 		}
 
 		function createScene(){
-			hasCollided=false;
 			score=0;
 			treesInPath=[];
 			treesPool=[];
@@ -197,7 +190,6 @@ class Game extends Component {
 					validMove=false;	
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
-				right = 0.3;
 				if(currentLane==middleLane){
 					currentLane=rightLane;
 				}else if(currentLane==leftLane){
@@ -368,20 +360,23 @@ class Game extends Component {
 			let oneTree;
 			let treePos = new THREE.Vector3();
 			let treesToRemove=[];
-			treesInPath.forEach( function ( element, index ) {
+			treesInPath.forEach( async function ( element, index ) {
 				oneTree=treesInPath[ index ];
 				treePos.setFromMatrixPosition( oneTree.matrixWorld );
 				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
-					if(isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
-						hasCollided=true;
+					if(hasCollided && isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						explode();
-						lives -= 1;
+						lives -= 1
+						hasCollided=false;
 						console.log(lives);
 						if(lives <= 0){
 							window.location.href="/over";
 						}
+						setTimeout(()=>{
+							hasCollided = true;
+						}, 500)
 					}
 				}
 			});
@@ -395,6 +390,7 @@ class Game extends Component {
 				//console.log("remove tree");
 			});
 		}
+
 
 		function doExplosionLogic(){
 			if(!particles.visible)return;
