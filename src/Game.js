@@ -2,11 +2,45 @@ import React, { Component } from 'react';
 //const THREE = window.THREE;
 import * as THREE from 'three';
 import Running from './assets/Running.fbx';
-import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import * as tf from "@tensorflow/tfjs";
+import * as posenet from "@tensorflow-models/posenet";
 
 class Game extends Component {
 
-	componentDidMount(){
+	async componentDidMount() {
+		var canPlayVideo = false;
+
+		let loadPoseNet = function () {
+			return posenet.load({
+				architecture: 'MobileNetV1',
+				outputStride: 16,
+				inputResolution: { width: 640, height: 480 },
+				multiplier: 0.5
+			}).then(res => { return res })
+		}
+
+		var video = document.querySelector("#videoElement");
+
+		if (navigator.mediaDevices.getUserMedia) {
+			navigator.mediaDevices.getUserMedia({ video: true })
+				.then(function (stream) {
+					video.srcObject = stream;
+				})
+				.catch(function (err0r) {
+					console.log("Something went wrong!");
+				});
+		}
+		if (video) {
+			video.addEventListener('loadeddata', function () {
+				canPlayVideo = true;
+			}, false);
+			video.width = 640;
+			video.height = 480;
+		}
+
+		const net = await loadPoseNet();
+		
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
 		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane = 0, clock, jumping = false;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
@@ -23,6 +57,7 @@ class Game extends Component {
 		let particleCount=20;
 		let explosionPower =1.06;
 		let right = 0;
+		// let freezeTime = 0;
 
 		let playerObject, playerMixer, playerLoader, action, isLoaded = false;
 		
@@ -373,7 +408,106 @@ class Game extends Component {
 			}
 		}
 
-		function update(){
+		function findAngle(A, B, C) {
+			var AB = Math.sqrt(Math.pow(B.x - A.x, 2) + Math.pow(A.y - B.y, 2));
+			var BC = Math.sqrt(Math.pow(B.x - C.x, 2) + Math.pow(C.y - B.y, 2));
+			var AC = Math.sqrt(Math.pow(C.x - A.x, 2) + Math.pow(A.y - C.y, 2));
+			return Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB));
+		}
+
+		// function decrement() {
+		// 	freezeTime = freezeTime - 1;
+		// }
+
+		function validatePose(pose) {
+			// if (pose === null || freezeTime > 0) {
+			// 	console.log("Pose is null", freezeTime);
+			// 	return;
+			// }
+
+			let left = false;
+			let right = false;
+			let jump = false;
+
+			const lSh = pose.keypoints[5];
+			const rSh = pose.keypoints[6];
+			const lEl = pose.keypoints[7];
+			const rEl = pose.keypoints[8];
+			const lWr = pose.keypoints[9];
+			const rWr = pose.keypoints[10];
+
+			if (rWr.score > 0.5 && rWr.position.y < rEl.position.y && rWr.position.x > rSh.position.x) {
+				let rAngle = (findAngle(rSh.position, rEl.position, rWr.position) * 180) / Math.PI
+				if (rAngle < 90.0) {
+					right = true;
+				}
+			}
+			if (lWr.score > 0.5 && lWr.position.y < lEl.position.y && lWr.position.x < lSh.position.x) {
+				let lAngle = (findAngle(lSh.position, lEl.position, lWr.position) * 180) / Math.PI
+				if (lAngle < 90.0) {
+					left = true;
+				}
+			}
+			if (lWr.score > 0.3 && rWr.score > 0.3 && lWr.position.x > lSh.position.x && rWr.position.x < rSh.position.x) {
+				jump = true;
+			}
+
+			if (jump === true) {
+				console.log("Jump");
+				// Doing the Jump animation
+				// freezeTime = 1;
+				// setInterval(decrement, 1000);
+				playerObject.position.y += 0.25;
+			}
+			else if (left === true) {//left
+				console.log("Left");
+				if (currentLane === middleLane) {
+					currentLane = leftLane;
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				} else if (currentLane === rightLane) {
+					currentLane = middleLane;
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				}
+			} else if (right === true) {//right
+				console.log("Right");
+				if (currentLane === middleLane) {
+					currentLane = rightLane;
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				} else if (currentLane === leftLane) {
+					currentLane = middleLane;
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				}
+			}
+		}
+
+		async function estimatePoseOnImage(imageElement) {
+			// if (freezeTime > 0) {
+			// 	return null;
+			// }
+
+			// estimate poses
+			const poses = await net.estimateSinglePose(imageElement, { flipHorizontal: true });
+
+			return poses;
+		}
+
+
+		function update() {
+			// Perf: Following block can be called periodically, and not for
+			// every frame
+
+			// BLOCK Start
+			if (canPlayVideo) {
+				estimatePoseOnImage(video).then(poses => validatePose(poses));
+			} else {
+				console.log("Waiting for camera input.");
+			}
+			// BLOCK End
+
 			//stats.update();
 				//animate
 				rollingGroundSphere.rotation.x += rollingSpeed;
@@ -481,8 +615,11 @@ class Game extends Component {
 	}
 
   render(){
-    return (
-      <div style={{width:"100%", height:"100vh"}}id="game"></div>
+		return (
+	  	<div>
+			<video hidden autoPlay={true} id="videoElement"></video>
+			<div style={{ width: "100%", height: "100vh" }} id="game"></div>
+	  </div>
     )
   }
 }
