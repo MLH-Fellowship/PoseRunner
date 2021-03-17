@@ -35,6 +35,7 @@ class Game extends Component {
 		let particleCount=20;
 		let explosionPower =1.06;
 		let right = 0;
+		let lives = 5;
 
 		let vertexArr = [];
 
@@ -97,26 +98,26 @@ class Game extends Component {
 
 			document.onkeydown = handleKeyDown;
 			
-			// scoreText = document.createElement('div');
-			// scoreText.style.position = 'absolute';
-			// //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-			// scoreText.style.width = 100;
-			// scoreText.style.height = 100;
-			// //scoreText.style.backgroundColor = "blue";
-			// scoreText.innerHTML = "0";
-			// scoreText.style.top = 50 + 'px';
-			// scoreText.style.left = 10 + 'px';
-			// document.body.appendChild(scoreText);
+			scoreText = document.createElement('div');
+			scoreText.style.position = 'absolute';
+			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+			scoreText.style.width = 100;
+			scoreText.style.height = 100;
+			//scoreText.style.backgroundColor = "blue";
+			scoreText.innerHTML = "0";
+			scoreText.style.top = 50 + 'px';
+			scoreText.style.left = 10 + 'px';
+			document.body.appendChild(scoreText);
 			
-			// let infoText = document.createElement('div');
-			// infoText.style.position = 'absolute';
-			// infoText.style.width = 100;
-			// infoText.style.height = 100;
-			// infoText.style.backgroundColor = "yellow";
-			// infoText.innerHTML = "UP - Jump, Left/Right - Move";
-			// infoText.style.top = 10 + 'px';
-			// infoText.style.left = 10 + 'px';
-			// document.body.appendChild(infoText);
+			let infoText = document.createElement('div');
+			infoText.style.position = 'absolute';
+			infoText.style.width = 100;
+			infoText.style.height = 100;
+			infoText.style.backgroundColor = "yellow";
+			infoText.innerHTML = "UP - Jump, Left/Right - Move";
+			infoText.style.top = 10 + 'px';
+			infoText.style.left = 10 + 'px';
+			document.body.appendChild(infoText);
 		}
 
 		/**
@@ -345,10 +346,10 @@ class Game extends Component {
 				if(clock.getElapsedTime()>treeReleaseInterval){
 					clock.start();
 					addPathTree();
-						if(!hasCollided){
-						// score+=2*treeReleaseInterval;
-						// scoreText.innerHTML=score.toString();
-						}
+					if(lives > 0){
+						score+=2*treeReleaseInterval;
+						scoreText.innerHTML=score.toString();
+					}
 				}
 				if(isLoaded){
 					if(playerObject.position.y > 2.3){
@@ -375,8 +376,12 @@ class Game extends Component {
 				}else{//check collision
 					if(isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						hasCollided=true;
-						//gameProp.props.showEnd();
 						explode();
+						lives -= 1;
+						console.log(lives);
+						if(lives <= 0){
+							window.location.href="/over";
+						}
 					}
 				}
 			});
@@ -418,7 +423,6 @@ class Game extends Component {
 				explosionPower-=0.0015;
 			}else{
 				particles.visible=false;
-				console.log("Not explode");
 			}
 			particleGeometry.verticesNeedUpdate = true;
 		}

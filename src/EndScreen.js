@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import styles from './StartScreen.module.css';
+import { Link } from 'react-router-dom';
 
 class EndScreen extends Component {
 
@@ -17,7 +18,7 @@ class EndScreen extends Component {
         <div>
           <p className={styles.howto}> Your previous high score was XX. </p>
         </div>
-        <button className={styles.fe_pulse} onClick={this.props.restart}> PLAY AGAIN </button>
+        <Link to="/game" className={styles.fe_pulse}> PLAY AGAIN </Link>
       </div>
     )
   } 
