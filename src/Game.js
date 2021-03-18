@@ -5,10 +5,17 @@ import Jumping from './assets/Jump2.fbx';
 import will from "./assets/icon.jpg";
 import bg from "./assets/skies/bg8.jpg";
 import txt from "./assets/skies/tile02.png";
+<<<<<<< HEAD
 import leftArrow from './assets/arrows/left.png';
 import rightArrow from './assets/arrows/right.png';
 import upArrow from './assets/arrows/up.png';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
+||||||| constructed merge base
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
+=======
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+>>>>>>> assets change
 
 class Game extends Component {
 
