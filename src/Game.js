@@ -168,7 +168,7 @@ class Game extends Component {
 			const vertices = new Float32Array(positions);
 			particleGeometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
 			let pMaterial = new THREE.ParticleBasicMaterial({
-				color: 0x006400,
+				color: 0xC0C0C0,
 				size: 0.1
 			});
 			particles = new THREE.Points( particleGeometry, pMaterial );
@@ -247,7 +247,7 @@ class Game extends Component {
 			let tiers=80;
 			let sphereTexture = new THREE.TextureLoader().load(txt);
 			let sphereGeometry = new THREE.SphereGeometry(worldRadius, sides, tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, flatShading: THREE.FlatShading, map: sphereTexture });
+			let sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3793, flatShading: THREE.FlatShading, map: sphereTexture });
 			rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 			
 			rollingGroundSphere.receiveShadow = true;
@@ -316,67 +316,21 @@ class Game extends Component {
 			let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
 			let treeVector = newTree.position.clone().normalize();
 			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
-			newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+			//newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
 			
 			rollingGroundSphere.add(newTree);
 		}
 
-		// function createTree() {
-		// 	let sides = 8;
-		// 	let tiers = 6;
-		// 	let willTexture = new THREE.TextureLoader().load(will);
-		// 	let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
-		// 	let treeMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff33, flatShading: THREE.FlatShading });
-		// 	let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
-		// 	let treeTop1 = new THREE.Mesh(treeGeometry, treeMaterial);
-		// 	let treeTop2 = new THREE.Mesh(treeGeometry, treeMaterial);
-
-
-		// 	let willGeometry = new THREE.PlaneGeometry(1, 1);
-		// 	let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
-		// 	let willMesh = new THREE.Mesh(willGeometry, willMaterial);
-		// 	willMesh.position.y = 1;
-
-		// 	treeTop.castShadow = true;
-		// 	treeTop.receiveShadow = false;
-		// 	treeTop.position.y = 0.05;
-		// 	treeTop1.castShadow = true;
-		// 	treeTop1.receiveShadow = false;
-		// 	treeTop1.position.y = 0.05;
-		// 	treeTop1.position.x += 0.25;
-		// 	treeTop2.castShadow = true;
-		// 	treeTop2.receiveShadow = false;
-		// 	treeTop2.position.y = 0.05;
-		// 	treeTop2.position.x += 0.5;
-
-		// 	treeTop.rotation.y = 0;
-		// 	treeTop1.rotation.y = 0;
-		// 	treeTop2.rotation.y = 0;
-
-		// 	// (Math.random() * (Math.PI));
-		// 	let treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
-		// 	let trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x886633, flatShading: THREE.FlatShading });
-		// 	let treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
-		// 	treeTrunk.position.y = 0.25;
-		// 	let tree = new THREE.Object3D();
-		// 	// tree.add(treeTrunk);
-		// 	// tree.add(treeTop);
-		// 	// tree.add(willMesh);
-
-		// 	// tree.add(spikeMesh);
-		// 	tree.add(treeTop);
-		// 	tree.add(treeTop1);
-		// 	tree.add(treeTop2);
-		// 	return tree;
-		// }
-
-		function createTree(){
-			let sides=8;
-			let tiers=6;
+		function createTree() {
+			let sides = 8;
+			let tiers = 6;
 			let willTexture = new THREE.TextureLoader().load(will);
 			let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
-			let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading} );
+			let treeMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff33, flatShading: THREE.FlatShading });
 			let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
+			let treeTop1 = new THREE.Mesh(treeGeometry, treeMaterial);
+			let treeTop2 = new THREE.Mesh(treeGeometry, treeMaterial);
+
 
 			let willGeometry = new THREE.PlaneGeometry(1, 1);
 			let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
@@ -384,19 +338,65 @@ class Game extends Component {
 			willMesh.position.y = 1;
 
 			treeTop.castShadow = true;
-			treeTop.receiveShadow=false;
-			treeTop.position.y = 0.9;
+			treeTop.receiveShadow = false;
+			treeTop.position.y = 0.05;
+			treeTop1.castShadow = true;
+			treeTop1.receiveShadow = false;
+			treeTop1.position.y = 0.05;
+			treeTop1.position.x += 0.25;
+			treeTop2.castShadow = true;
+			treeTop2.receiveShadow = false;
+			treeTop2.position.y = 0.05;
+			treeTop2.position.x += 0.5;
 
-			treeTop.rotation.y = (Math.random() * (Math.PI));
-			let treeTrunkGeometry = new THREE.CylinderGeometry( 0.1, 0.1,0.5);
-			let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,flatShading:THREE.FlatShading  } );
-			let treeTrunk = new THREE.Mesh( treeTrunkGeometry, trunkMaterial );
-			treeTrunk.position.y=0.25;
-			let tree =new THREE.Object3D();
-			tree.add(treeTrunk);
-			tree.add(willMesh);
+			treeTop.rotation.y = 0;
+			treeTop1.rotation.y = 0;
+			treeTop2.rotation.y = 0;
+
+			// (Math.random() * (Math.PI));
+			let treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
+			let trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x886633, flatShading: THREE.FlatShading });
+			let treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
+			treeTrunk.position.y = 0.25;
+			let tree = new THREE.Object3D();
+			// tree.add(treeTrunk);
+			// tree.add(treeTop);
+			// tree.add(willMesh);
+
+			// tree.add(spikeMesh);
+			tree.add(treeTop);
+			tree.add(treeTop1);
+			tree.add(treeTop2);
 			return tree;
 		}
+
+		// function createTree(){
+		// 	let sides=8;
+		// 	let tiers=6;
+		// 	let willTexture = new THREE.TextureLoader().load(will);
+		// 	let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
+		// 	let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading} );
+		// 	let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
+
+		// 	let willGeometry = new THREE.PlaneGeometry(1, 1);
+		// 	let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
+		// 	let willMesh = new THREE.Mesh(willGeometry, willMaterial);
+		// 	willMesh.position.y = 1;
+
+		// 	treeTop.castShadow = true;
+		// 	treeTop.receiveShadow=false;
+		// 	treeTop.position.y = 0.9;
+
+		// 	treeTop.rotation.y = (Math.random() * (Math.PI));
+		// 	let treeTrunkGeometry = new THREE.CylinderGeometry( 0.1, 0.1,0.5);
+		// 	let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,flatShading:THREE.FlatShading  } );
+		// 	let treeTrunk = new THREE.Mesh( treeTrunkGeometry, trunkMaterial );
+		// 	treeTrunk.position.y=0.25;
+		// 	let tree =new THREE.Object3D();
+		// 	tree.add(treeTrunk);
+		// 	tree.add(willMesh);
+		// 	return tree;
+		// }
 
 		function update(){
 			//stats.update();
