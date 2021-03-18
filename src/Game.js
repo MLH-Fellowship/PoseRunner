@@ -29,7 +29,8 @@ class Game extends Component {
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
 		let explosionPower =1.06;
-		let lives = 3;
+		let lives = 3000;
+		let playerInitialPositionY = 2;
 
 		let vertexArr = [];
 
@@ -85,7 +86,8 @@ class Game extends Component {
 			addExplosion();
 			
 			camera.position.z = 7.5;
-			camera.position.y = 3.15;
+			camera.position.y = 2.5;
+			camera.rotation.x += 0.15;
 			
 			window.addEventListener('resize', onWindowResize, false);//resize callback
 
@@ -125,8 +127,8 @@ class Game extends Component {
 		function playerLoad(object3d){
 			playerObject = object3d;
 			playerObject.scale.set(0.0025,0.0025,0.0025);
-			playerObject.position.y = 2.3;
-			playerObject.position.z = 6;
+			playerObject.position.y = playerInitialPositionY;
+			playerObject.position.z = 6.2;
 			playerObject.rotateY(185.25);
 			playerObject.receiveShadow = true;
 			playerObject.castShadow = true;
@@ -200,7 +202,7 @@ class Game extends Component {
 			}else{
 				if ( keyEvent.keyCode === 38 && canJump === true){//up, jump
 					canJump = false;
-					playerObject.position.y += 0.25;
+					playerObject.position.y += 0.2;
 					playOnClick(run, 0.1, jump, 0.1);
 				}
 				validMove=false;
@@ -221,6 +223,13 @@ class Game extends Component {
 
 			setTimeout(function () {
 				// Switch from jumping animation to running animation
+				var moveDown = setInterval(function () {
+					if (playerObject.position.y < playerInitialPositionY) {
+					playerObject.position.y = playerInitialPositionY;
+					clearInterval(moveDown);
+					}
+					playerObject.position.y -= 0.01;
+				}, 15);
 				from.enabled = true;
 				to.crossFadeTo(from, tSpeed, true);
 				canJump = true;
