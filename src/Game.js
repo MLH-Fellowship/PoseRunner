@@ -9,7 +9,11 @@ import dn from './assets/skies/scottstorm_dn.png';
 import lf from './assets/skies/scottstorm_lf.png';
 import rt from './assets/skies/scottstorm_rt.png';
 import ft from './assets/skies/scottstorm_ft.png';
-import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
+import will from "./assets/icon.jpg";
+import bg from "./assets/skies/bg8.jpg";
+import txt from "./assets/skies/tile02.png";
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 
 class Game extends Component {
 
@@ -17,7 +21,7 @@ class Game extends Component {
 		super(props);
 	}
 
-	componentDidMount(){
+	componentDidMount() {
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
 		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided = true;
@@ -46,7 +50,7 @@ class Game extends Component {
 			update();
 		}
 
-		function createScene(){
+		function createScene() {
 			score=0;
 			treesInPath=[];
 			treesPool=[];
@@ -58,7 +62,7 @@ class Game extends Component {
 			sceneWidth=window.innerWidth;
 			sceneHeight=window.innerHeight;
 			scene = new THREE.Scene();//the 3d scene
-			scene.fog = new THREE.FogExp2( 0xf0fff0, 0.14 );
+			scene.fog = new THREE.FogExp2( 0xf0fff0, 0.15 );
 			camera = new THREE.PerspectiveCamera( 60, sceneWidth / sceneHeight, 0.1, 1000 );//perspective camera
 			renderer = new THREE.WebGLRenderer({alpha:true, antialias: true});//renderer with transparent backdrop
 			renderer.setClearColor(0xfffafa, 1); 
@@ -67,16 +71,18 @@ class Game extends Component {
 			renderer.setSize( sceneWidth, sceneHeight );
 			dom = document.getElementById('game');
 			dom.appendChild(renderer.domElement);
-			var cubeTextureLoader = new THREE.CubeTextureLoader();
+
+			var bgLoader = new THREE.TextureLoader().load(bg);
+			// var cubeTextureLoader = new THREE.CubeTextureLoader();
 			/* cubeTextureLoader.setPath( 'assets/skies/' ); */
-			var cubeTexture = cubeTextureLoader.load( [
-				ft, bk,
-				up, dn,
-				rt, lf
-			], ()=>{
-				scene.background = cubeTexture;
-			} );
-			scene.background = cubeTexture;
+			// var cubeTexture = cubeTextureLoader.load( [
+			// 	bg, bg,
+			// 	bg, bg,
+			// 	bg, bg
+			// ], ()=>{
+			// 	scene.background = cubeTexture;
+			// } );
+			scene.background = bgLoader;
 			init_Loader();
 
 			createTreesPool();
@@ -237,11 +243,13 @@ class Game extends Component {
 		}
   
 		function addWorld(){
-			let sides=100;
-			let tiers=40;
-			let sphereGeometry = new THREE.SphereGeometry( worldRadius, sides,tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x06b011 ,flatShading:THREE.FlatShading} )
-			rollingGroundSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+			let sides=50;
+			let tiers=80;
+			let sphereTexture = new THREE.TextureLoader().load(txt);
+			let sphereGeometry = new THREE.SphereGeometry(worldRadius, sides, tiers);
+			let sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, flatShading: THREE.FlatShading, map: sphereTexture });
+			rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+			
 			rollingGroundSphere.receiveShadow = true;
 			rollingGroundSphere.castShadow=false;
 			rollingGroundSphere.rotation.z=-Math.PI/2;
@@ -313,23 +321,80 @@ class Game extends Component {
 			rollingGroundSphere.add(newTree);
 		}
 
+		// function createTree() {
+		// 	let sides = 8;
+		// 	let tiers = 6;
+		// 	let willTexture = new THREE.TextureLoader().load(will);
+		// 	let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
+		// 	let treeMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff33, flatShading: THREE.FlatShading });
+		// 	let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
+		// 	let treeTop1 = new THREE.Mesh(treeGeometry, treeMaterial);
+		// 	let treeTop2 = new THREE.Mesh(treeGeometry, treeMaterial);
+
+
+		// 	let willGeometry = new THREE.PlaneGeometry(1, 1);
+		// 	let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
+		// 	let willMesh = new THREE.Mesh(willGeometry, willMaterial);
+		// 	willMesh.position.y = 1;
+
+		// 	treeTop.castShadow = true;
+		// 	treeTop.receiveShadow = false;
+		// 	treeTop.position.y = 0.05;
+		// 	treeTop1.castShadow = true;
+		// 	treeTop1.receiveShadow = false;
+		// 	treeTop1.position.y = 0.05;
+		// 	treeTop1.position.x += 0.25;
+		// 	treeTop2.castShadow = true;
+		// 	treeTop2.receiveShadow = false;
+		// 	treeTop2.position.y = 0.05;
+		// 	treeTop2.position.x += 0.5;
+
+		// 	treeTop.rotation.y = 0;
+		// 	treeTop1.rotation.y = 0;
+		// 	treeTop2.rotation.y = 0;
+
+		// 	// (Math.random() * (Math.PI));
+		// 	let treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
+		// 	let trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x886633, flatShading: THREE.FlatShading });
+		// 	let treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
+		// 	treeTrunk.position.y = 0.25;
+		// 	let tree = new THREE.Object3D();
+		// 	// tree.add(treeTrunk);
+		// 	// tree.add(treeTop);
+		// 	// tree.add(willMesh);
+
+		// 	// tree.add(spikeMesh);
+		// 	tree.add(treeTop);
+		// 	tree.add(treeTop1);
+		// 	tree.add(treeTop2);
+		// 	return tree;
+		// }
+
 		function createTree(){
 			let sides=8;
 			let tiers=6;
-			let treeGeometry = new THREE.ConeGeometry( 0.27, 1, sides, tiers);
-			let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading  } );
-			let treeTop = new THREE.Mesh( treeGeometry, treeMaterial );
-			treeTop.castShadow=true;
+			let willTexture = new THREE.TextureLoader().load(will);
+			let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
+			let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading} );
+			let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
+
+			let willGeometry = new THREE.PlaneGeometry(1, 1);
+			let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
+			let willMesh = new THREE.Mesh(willGeometry, willMaterial);
+			willMesh.position.y = 1;
+
+			treeTop.castShadow = true;
 			treeTop.receiveShadow=false;
-			treeTop.position.y=0.9;
-			// treeTop.rotation.y=(Math.random()*(Math.PI));
+			treeTop.position.y = 0.9;
+
+			treeTop.rotation.y = (Math.random() * (Math.PI));
 			let treeTrunkGeometry = new THREE.CylinderGeometry( 0.1, 0.1,0.5);
 			let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,flatShading:THREE.FlatShading  } );
 			let treeTrunk = new THREE.Mesh( treeTrunkGeometry, trunkMaterial );
 			treeTrunk.position.y=0.25;
 			let tree =new THREE.Object3D();
 			tree.add(treeTrunk);
-			tree.add(treeTop);
+			tree.add(willMesh);
 			return tree;
 		}
 
