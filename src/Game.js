@@ -9,6 +9,9 @@ import dn from './assets/skies/scottstorm_dn.png';
 import lf from './assets/skies/scottstorm_lf.png';
 import rt from './assets/skies/scottstorm_rt.png';
 import ft from './assets/skies/scottstorm_ft.png';
+import leftArrow from './assets/arrows/left.png';
+import rightArrow from './assets/arrows/right.png';
+import upArrow from './assets/arrows/up.png';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
@@ -39,7 +42,14 @@ class Game extends Component {
 		let vertexArr = [];
 
 		let playerObject, playerMixer, playerLoader, run, jump, isLoaded = false;
-		
+
+		let LEFT = -0.1,RIGHT = 0.1,UP = 0.1,moveLeft=false, moveRight=false, moveUp = false, leftCube, rightCube, upCube;
+        let createCube = function () {
+            const geometry = new THREE.PlaneGeometry(0.15,0.15);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 1, transparent: true});
+            let cube = new THREE.Mesh(geometry, material);
+            return cube;
+        };
 		init();
 
 		function init() {
@@ -82,6 +92,7 @@ class Game extends Component {
 				scene.background = cubeTexture;
 			} );
 			scene.background = cubeTexture;
+
 			init_Loader();
 
 			createTreesPool();
@@ -92,9 +103,28 @@ class Game extends Component {
 			
 			camera.position.z = 7.5;
 			camera.position.y = 3.15;
-			
-			window.addEventListener('resize', onWindowResize, false);//resize callback
+			leftCube = createCube();
+			leftCube.position.set(-0.4,3.7,6);
+			let leftTexture = new THREE.TextureLoader().load(leftArrow);
+			leftCube.material.map = leftTexture;
+			leftCube.visible = false;
+			scene.add(leftCube);
 
+			rightCube = createCube();
+			rightCube.position.set(0.4,3.7,6);
+			let rightTexture = new THREE.TextureLoader().load(rightArrow);
+			rightCube.material.map = rightTexture;
+			rightCube.visible = false;
+			scene.add(rightCube);
+
+			upCube = createCube();
+			upCube.position.set(0,3.84,6);
+			let upTexture = new THREE.TextureLoader().load(upArrow);
+			upCube.material.map = upTexture;
+			upCube.visible = false;
+			scene.add(upCube);
+
+			window.addEventListener('resize', onWindowResize, false);//resize callback
 			document.onkeydown = handleKeyDown;
 			
 			// scoreText = document.createElement('div');
@@ -188,6 +218,13 @@ class Game extends Component {
 			//if(jumping)return;
 			let validMove=true;
 			if ( keyEvent.keyCode === 37) {//left
+				leftCube.visible = true;
+				moveLeft = true;
+				setTimeout(()=>{
+					moveLeft = false;
+					leftCube.visible = false;
+					leftCube.position.x = -0.4;
+				},200);
 				if(currentLane == middleLane){
 					currentLane = leftLane;
 				}else if(currentLane == rightLane){
@@ -197,6 +234,13 @@ class Game extends Component {
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
 				right = 0.3;
+				rightCube.visible = true;
+				moveRight = true;
+				setTimeout(()=>{
+					moveRight = false;
+					rightCube.visible = false;
+					rightCube.position.x = 0.4;
+				},200);
 				if(currentLane==middleLane){
 					currentLane=rightLane;
 				}else if(currentLane==leftLane){
@@ -206,6 +250,9 @@ class Game extends Component {
 				}
 			}else{
 				if ( keyEvent.keyCode === 38 && canJump === true){//up, jump
+					upCube.visible = true;
+                    moveUp = true;
+                
 					canJump = false;
 					playerObject.position.y += 0.25;
 					playOnClick(run, 0.1, jump, 0.1);
@@ -231,6 +278,10 @@ class Game extends Component {
 				from.enabled = true;
 				to.crossFadeTo(from, tSpeed, true);
 				canJump = true;
+
+				moveUp = false;
+				upCube.visible = false;
+				upCube.position.y = 3.84;
 			}, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
 		}
   
@@ -335,6 +386,18 @@ class Game extends Component {
 			//stats.update();
 				//animate
 				rollingGroundSphere.rotation.x += rollingSpeed;
+				if(moveLeft)
+            	{
+					leftCube.position.x = THREE.Math.lerp(leftCube.position.x, leftCube.position.x += LEFT*3, 0.01);
+             	}
+				 if(moveRight)
+            	{
+					rightCube.position.x = THREE.Math.lerp(rightCube.position.x, rightCube.position.x += RIGHT*3, 0.01);
+                }
+				if(moveUp)
+				{
+					upCube.position.y = THREE.Math.lerp(upCube.position.y, upCube.position.y += UP*5, 0.005)
+				}
 				// if(playerObject.position.y<=heroBaseY){
 				// 	jumping=false;
 				// 	bounceValue=0.007//(Math.random()*0.04)+0.005;
