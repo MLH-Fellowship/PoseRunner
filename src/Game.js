@@ -21,23 +21,18 @@ class Game extends Component {
 	}
 
 	componentDidMount(){
-		let gameProp = this;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
 		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
-		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
+		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided = true;
 		let rollingSpeed=0.008;
 		let worldRadius=26.7;
 		let heroRadius=0.1;
-		let heroBaseY=2.2;
-		let bounceValue=0.2;
-		let gravity=0.0041;
 		let leftLane=-1.25;
 		let rightLane=1.25;
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
-		let particleCount=20;
 		let explosionPower =1.06;
-		let right = 0;
+		let lives = 3;
 
 		let vertexArr = [];
 
@@ -86,7 +81,6 @@ class Game extends Component {
 		}
 
 		function createScene(){
-			hasCollided=false;
 			score=0;
 			treesInPath=[];
 			treesPool=[];
@@ -136,26 +130,26 @@ class Game extends Component {
 			window.addEventListener('resize', onWindowResize, false);//resize callback
 			document.onkeydown = handleKeyDown;
 			
-			// scoreText = document.createElement('div');
-			// scoreText.style.position = 'absolute';
-			// //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-			// scoreText.style.width = 100;
-			// scoreText.style.height = 100;
-			// //scoreText.style.backgroundColor = "blue";
-			// scoreText.innerHTML = "0";
-			// scoreText.style.top = 50 + 'px';
-			// scoreText.style.left = 10 + 'px';
-			// document.body.appendChild(scoreText);
+			scoreText = document.createElement('div');
+			scoreText.style.position = 'absolute';
+			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+			scoreText.style.width = 100;
+			scoreText.style.height = 100;
+			//scoreText.style.backgroundColor = "blue";
+			scoreText.innerHTML = "0";
+			scoreText.style.top = 50 + 'px';
+			scoreText.style.left = 10 + 'px';
+			document.body.appendChild(scoreText);
 			
-			// let infoText = document.createElement('div');
-			// infoText.style.position = 'absolute';
-			// infoText.style.width = 100;
-			// infoText.style.height = 100;
-			// infoText.style.backgroundColor = "yellow";
-			// infoText.innerHTML = "UP - Jump, Left/Right - Move";
-			// infoText.style.top = 10 + 'px';
-			// infoText.style.left = 10 + 'px';
-			// document.body.appendChild(infoText);
+			let infoText = document.createElement('div');
+			infoText.style.position = 'absolute';
+			infoText.style.width = 100;
+			infoText.style.height = 100;
+			infoText.style.backgroundColor = "yellow";
+			infoText.innerHTML = "UP - Jump, Left/Right - Move";
+			infoText.style.top = 10 + 'px';
+			infoText.style.left = 10 + 'px';
+			document.body.appendChild(infoText);
 		}
 
 		/**
@@ -236,7 +230,6 @@ class Game extends Component {
 					validMove=false;	
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
-				right = 0.3;
 				handleArrows('right');
 				if(currentLane==middleLane){
 					currentLane=rightLane;
@@ -423,10 +416,10 @@ class Game extends Component {
 				if(clock.getElapsedTime()>treeReleaseInterval){
 					clock.start();
 					addPathTree();
-						if(!hasCollided){
-						// score+=2*treeReleaseInterval;
-						// scoreText.innerHTML=score.toString();
-						}
+					if(lives > 0){
+						score+=2*treeReleaseInterval;
+						scoreText.innerHTML=score.toString();
+					}
 				}
 				if(isLoaded){
 					if(playerObject.position.y > 2.3){
@@ -461,16 +454,23 @@ class Game extends Component {
 			let oneTree;
 			let treePos = new THREE.Vector3();
 			let treesToRemove=[];
-			treesInPath.forEach( function ( element, index ) {
+			treesInPath.forEach( async function ( element, index ) {
 				oneTree=treesInPath[ index ];
 				treePos.setFromMatrixPosition( oneTree.matrixWorld );
 				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
-					if(isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
-						hasCollided=true;
-						//gameProp.props.showEnd();
+					if(hasCollided && isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						explode();
+						lives -= 1
+						hasCollided=false;
+						console.log(lives);
+						if(lives <= 0){
+							window.location.href="/over";
+						}
+						setTimeout(()=>{
+							hasCollided = true;
+						}, 500)
 					}
 				}
 			});
@@ -484,6 +484,7 @@ class Game extends Component {
 				//console.log("remove tree");
 			});
 		}
+
 
 		function doExplosionLogic(){
 			if(!particles.visible)return;
@@ -512,7 +513,6 @@ class Game extends Component {
 				explosionPower-=0.0015;
 			}else{
 				particles.visible=false;
-				console.log("Not explode");
 			}
 			particleGeometry.verticesNeedUpdate = true;
 		}
