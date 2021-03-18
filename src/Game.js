@@ -301,7 +301,6 @@ class Game extends Component {
 			let sphereGeometry = new THREE.SphereGeometry(worldRadius, sides, tiers);
 			let sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3793, flatShading: THREE.FlatShading, map: sphereTexture });
 			rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-			
 			rollingGroundSphere.receiveShadow = true;
 			rollingGroundSphere.castShadow=false;
 			rollingGroundSphere.rotation.z=-Math.PI/2;
