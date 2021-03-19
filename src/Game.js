@@ -46,7 +46,7 @@ class Game extends Component {
 		}
 
 		const net = await loadPoseNet();
-    let gameProp = this;
+    	let gameProp = this;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
 		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, jumping = false;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
@@ -63,6 +63,7 @@ class Game extends Component {
 		let particleCount=20;
 		let explosionPower =1.06;
 		let right = 0;
+		let canGoLeft = true, canGoRight = true;
 		// let freezeTime = 0;
 
 		let vertexArr = [];
@@ -389,27 +390,43 @@ class Game extends Component {
 				// setInterval(decrement, 1000);
 				playerObject.position.y += 0.25;
 			}
-			else if (left === true) {//left
+			else if (left === true && canGoLeft) {//left
+				canGoLeft = false;
 				console.log("Left");
 				if (currentLane === middleLane) {
 					currentLane = leftLane;
+					canGoLeft = true;
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
 				} else if (currentLane === rightLane) {
 					currentLane = middleLane;
+					setTimeout(()=>{
+						canGoLeft = true;
+						console.log("Left made true");
+					}, 1000);
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
+				} else {
+					canGoLeft = true;
 				}
-			} else if (right === true) {//right
+			} else if (right === true && canGoRight) {//right
+				canGoRight = false;
 				console.log("Right");
 				if (currentLane === middleLane) {
 					currentLane = rightLane;
+					canGoRight = true;
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
 				} else if (currentLane === leftLane) {
 					currentLane = middleLane;
+					setTimeout(()=>{
+						canGoRight = true;
+						console.log("Right made true");
+					}, 1000);
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
+				} else {
+					canGoRight = true;
 				}
 			}
 		}
@@ -479,7 +496,7 @@ class Game extends Component {
 				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
-					if(treePos.distanceTo(playerObject.position)<= 0.65){
+					if(isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						hasCollided=true;
 						//gameProp.props.showEnd();
 						explode();
@@ -524,7 +541,6 @@ class Game extends Component {
 				explosionPower-=0.0015;
 			}else{
 				particles.visible=false;
-				console.log("Not explode");
 			}
 			particleGeometry.verticesNeedUpdate = true;
 		}
