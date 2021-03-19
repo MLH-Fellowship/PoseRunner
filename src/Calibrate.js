@@ -63,7 +63,7 @@ class CalibrateScreen extends Component {
                 </div>
                 <div className={styles.css_typing_calib_small}>
                     <p>
-                        (and all relevant body parts are visible)
+                        (and all relevant body poses are visible)
                     </p>
                 </div>
                 <div style={{ textAlign: "center" }}>
