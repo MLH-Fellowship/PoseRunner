@@ -1,30 +1,21 @@
 import React, { Component } from 'react';
 import * as THREE from 'three';
-import Running from './assets/Running.fbx';
 import Jumping from './assets/Jump2.fbx';
-import will from "./assets/icon.jpg";
-import bg from "./assets/skies/bg8.jpg";
-import txt from "./assets/skies/tile02.png";
 import deadline from "./assets/logos/hourglass.png";
 import insta from "./assets/logos/Insta.jpg";
 import youtube from "./assets/logos/Youtube.png";
 import anxiety from "./assets/logos/anxiety.jpg";
-import leftArrow from './assets/arrows/left.png';
-import rightArrow from './assets/arrows/right.png';
-import upArrow from './assets/arrows/up.png';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 import fontJSON from './gentilis_bold.typeface.json';
 
 class Game extends Component {
 
-	constructor(props){
-		super(props);
-	}
-
 	componentDidMount() {
+		let will = this.props.willImg, bg = this.props.backGrd, txt=this.props.txtr;
+		let leftArrow=this.props.leftA, rightArrow=this.props.rightA, upArrow=this.props.jumpA;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere;
 		let sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
-		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided = true;
+		let treesInPath, treesPool, particleGeometry, particles, scoreText, lifeText, score, hasCollided = true;
 		let rollingSpeed=0.008;
 		let worldRadius=26.7;
 		let leftLane=-1.25;
@@ -32,12 +23,12 @@ class Game extends Component {
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
 		let explosionPower =1.06;
-		let lives = 3000;
+		let lives = 3;
 		let playerInitialPositionY = 2;
 
 		let vertexArr = [];
 
-		let playerObject, playerMixer, playerLoader, run, jump, isLoaded = false;
+		let playerObject = this.props.player, playerMixer, run, jump, isLoaded = false;
 
 		let LEFT = -0.1,RIGHT = 0.1,UP = 0.1,moveLeft=false, moveRight=false, moveUp = false, leftCube, rightCube, upCube;
         
@@ -69,8 +60,8 @@ class Game extends Component {
 			scene.add(cube);
 
 			return cube;
-        };
-
+    };
+		
 		init();
 
 		function init() {
@@ -99,25 +90,15 @@ class Game extends Component {
 			renderer.shadowMap.enabled = true;//enable shadow
 			renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 			renderer.setSize( sceneWidth, sceneHeight );
+			playerLoad();
 			dom = document.getElementById('game');
 			dom.appendChild(renderer.domElement);
 
 			var bgLoader = new THREE.TextureLoader().load(bg);
-			// var cubeTextureLoader = new THREE.CubeTextureLoader();
-			/* cubeTextureLoader.setPath( 'assets/skies/' ); */
-			// var cubeTexture = cubeTextureLoader.load( [
-			// 	bg, bg,
-			// 	bg, bg,
-			// 	bg, bg
-			// ], ()=>{
-			// 	scene.background = cubeTexture;
-			// } );
 			scene.background = bgLoader;
-			init_Loader();
 
 			createTreesPool();
 			addWorld();
-			//addHero();
 			addLight();
 			addExplosion();
 			
@@ -136,33 +117,25 @@ class Game extends Component {
 			scoreText.style.position = 'absolute';
 			scoreText.style.width = 100;
 			scoreText.style.height = 100;
-			scoreText.innerHTML = "0";
-			scoreText.style.top = 50 + 'px';
+			scoreText.innerHTML = "Score: 0";
+			scoreText.style.backgroundColor="yellow";
+			scoreText.style.top = 10 + 'px';
 			scoreText.style.left = 10 + 'px';
 			document.body.appendChild(scoreText);
-			
-			let infoText = document.createElement('div');
-			infoText.style.position = 'absolute';
-			infoText.style.width = 100;
-			infoText.style.height = 100;
-			infoText.style.backgroundColor = "yellow";
-			infoText.innerHTML = "UP - Jump, Left/Right - Move";
-			infoText.style.top = 10 + 'px';
-			infoText.style.left = 10 + 'px';
-			document.body.appendChild(infoText);
+
+			lifeText = document.createElement('div');
+			lifeText.style.position = 'absolute';
+			lifeText.style.width = 100;
+			lifeText.style.height = 100;
+			lifeText.style.backgroundColor="yellow";
+			lifeText.innerHTML = "Live(s): 3";
+			lifeText.style.top = 10 + 'px';
+			lifeText.style.right = 10 + 'px';
+			document.body.appendChild(lifeText);
 		}
 
-		/**
-		 * Function to load assests
-		 */
-		function init_Loader(){
-			playerLoader = new FBXLoader();
-			playerLoader.load(Running, playerLoad);
-			currentLane=middleLane;
-		}
-
-		function playerLoad(object3d){
-			playerObject = object3d;
+		function playerLoad(){
+			let object3d = playerObject;
 			playerObject.scale.set(0.0025,0.0025,0.0025);
 			playerObject.position.y = playerInitialPositionY;
 			playerObject.position.z = 6.2;
@@ -181,6 +154,7 @@ class Game extends Component {
 			playerMixer.update(0);
 			playerObject.updateMatrix();
 			scene.add(playerObject);
+			currentLane=middleLane;
 			isLoaded = true; //prevents error while updating if the character is not loaded
 		}
 
@@ -226,7 +200,7 @@ class Game extends Component {
 				handleArrows('left');
 				if(currentLane == middleLane){
 					currentLane = leftLane;
-				}else if(currentLane == rightLane){
+				}else if(currentLane === rightLane){
 					currentLane = middleLane;
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
@@ -235,6 +209,7 @@ class Game extends Component {
 					currentLane=rightLane;
 				}else if(currentLane==leftLane){
 					currentLane=middleLane;
+
 				}
 			}else{
 				if ( keyEvent.keyCode === 38 && canJump === true){//up, jump
@@ -310,7 +285,6 @@ class Game extends Component {
 			let sphereGeometry = new THREE.SphereGeometry(worldRadius, sides, tiers);
 			let sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3793, flatShading: THREE.FlatShading, map: sphereTexture });
 			rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-			
 			rollingGroundSphere.receiveShadow = true;
 			rollingGroundSphere.castShadow=false;
 			rollingGroundSphere.rotation.z=-Math.PI/2;
@@ -357,7 +331,7 @@ class Game extends Component {
 		function addTree(inPath, row, isLeft){
 			let newTree;
 			if(inPath){
-				if(treesPool.length == 0)return;
+				if(treesPool.length === 0)return;
 				newTree=treesPool.pop();
 				newTree.visible = true;
 				treesInPath.push(newTree);
@@ -501,7 +475,7 @@ class Game extends Component {
 				addPathTree();
 				if(lives > 0){
 					score+=2*treeReleaseInterval;
-					scoreText.innerHTML=score.toString();
+					scoreText.innerHTML= "Score: " + score.toString();
 				}
 			}
 			if(isLoaded){
@@ -548,8 +522,13 @@ class Game extends Component {
 					if(hasCollided && isLoaded && ((isTree === false && treePos.distanceTo(playerObject.position)<= 0.45) || (isTree === true && treePos.distanceTo(playerObject.position)<= 0.55))){
 						explode();
 						lives -= 1
+						lifeText.innerHTML="Live(s): " + lives.toString();
 						hasCollided=false;
 						if(lives <= 0){
+							window.sessionStorage.setItem("currentScore", score);
+							if(!window.sessionStorage.getItem("highScore") || window.sessionStorage.getItem("highScore") < score){
+								window.sessionStorage.setItem("highScore", score);
+							}
 							window.location.href="/over";
 						}
 						setTimeout(()=>{
@@ -618,7 +597,6 @@ class Game extends Component {
 			camera.aspect = sceneWidth/sceneHeight;
 			camera.updateProjectionMatrix();
 		}
-
 	}
 
   render(){
