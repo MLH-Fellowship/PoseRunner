@@ -79,15 +79,15 @@ class Game extends Component {
 
             if(direction === 'left')
 			{
-				cube.position.set(-0.4,3.7,6);
+				cube.position.set(-0.4,3.5,6);
 				cube.material.map = leftTexture;
 			} else if (direction === 'right')
 			{
-				cube.position.set(0.4,3.7,6);
+				cube.position.set(0.4,3.5,6);
 				cube.material.map = rightTexture;
 			} else if (direction === 'up')
 			{
-				cube.position.set(0,3.84,6);
+				cube.position.set(0,3.6,6);
 				cube.material.map = upTexture;
 			} else {
 				return 'Not a valid direction'
@@ -309,7 +309,7 @@ class Game extends Component {
 					cube.position.x = 0.4;
 				} else if( dir === 'up')
 				{
-					upCube.position.y = 3.84;
+					upCube.position.y = 3.6;
 				}
 			},200);
 		}
@@ -519,15 +519,19 @@ class Game extends Component {
 				jump = true;
 			}
 
-			if (jump === true) {
+			if (jump === true && canJump === true) {
+				canJump = false;
+				handleArrows('up');
 				console.log("Jump");
 				// Doing the Jump animation
 				// freezeTime = 1;
 				// setInterval(decrement, 1000);
-				playerObject.position.y += 0.25;
+				playerObject.position.y += 0.2;
+					playOnClick(run, 0.1, jump, 0.1);
 			}
 			else if (left === true && canGoLeft) {//left
 				canGoLeft = false;
+				handleArrows('left');
 				console.log("Left");
 				if (currentLane === middleLane) {
 					currentLane = leftLane;
@@ -546,6 +550,7 @@ class Game extends Component {
 					canGoLeft = true;
 				}
 			} else if (right === true && canGoRight) {//right
+				handleArrows('right');
 				canGoRight = false;
 				console.log("Right");
 				if (currentLane === middleLane) {
