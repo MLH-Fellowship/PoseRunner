@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import * as tf from "@tensorflow/tfjs";
+import * as posenet from "@tensorflow-models/posenet";
 import * as THREE from 'three';
 import Jumping from './assets/Jump2.fbx';
 import deadline from "./assets/logos/hourglass.png";
@@ -9,7 +11,39 @@ import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
 
-	componentDidMount() {
+	async componentDidMount() {
+		var canPlayVideo = false;
+
+		let loadPoseNet = function () {
+			return posenet.load({
+				architecture: 'MobileNetV1',
+				outputStride: 16,
+				inputResolution: { width: 640, height: 480 },
+				multiplier: 0.5
+			}).then(res => { return res })
+		}
+
+		var video = document.querySelector("#videoElement");
+
+		if (navigator.mediaDevices.getUserMedia) {
+			navigator.mediaDevices.getUserMedia({ video: true })
+				.then(function (stream) {
+					video.srcObject = stream;
+				})
+				.catch(function (err0r) {
+					console.log("Something went wrong!");
+				});
+		}
+		if (video) {
+			video.addEventListener('loadeddata', function () {
+				canPlayVideo = true;
+			}, false);
+			video.width = 640;
+			video.height = 480;
+		}
+
+		const net = await loadPoseNet();
+
 		let will = this.props.willImg, bg = this.props.backGrd, txt=this.props.txtr;
 		let leftArrow=this.props.leftA, rightArrow=this.props.rightA, upArrow=this.props.jumpA;
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere;
@@ -22,6 +56,9 @@ class Game extends Component {
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
 		let explosionPower =1.06;
+		let right = 0;
+		let canGoLeft = true, canGoRight = true;
+		// let freezeTime = 0;
 		let lives = 3;
 		let playerInitialPositionY = 2;
 
@@ -438,6 +475,109 @@ class Game extends Component {
 			return tree;
 		}
 
+		function findAngle(A, B, C) {
+			var AB = Math.sqrt(Math.pow(B.x - A.x, 2) + Math.pow(A.y - B.y, 2));
+			var BC = Math.sqrt(Math.pow(B.x - C.x, 2) + Math.pow(C.y - B.y, 2));
+			var AC = Math.sqrt(Math.pow(C.x - A.x, 2) + Math.pow(A.y - C.y, 2));
+			return Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB));
+		}
+
+		// function decrement() {
+		// 	freezeTime = freezeTime - 1;
+		// }
+
+		function validatePose(pose) {
+			// if (pose === null || freezeTime > 0) {
+			// 	console.log("Pose is null", freezeTime);
+			// 	return;
+			// }
+
+			let left = false;
+			let right = false;
+			let jump = false;
+
+			const lSh = pose.keypoints[5];
+			const rSh = pose.keypoints[6];
+			const lEl = pose.keypoints[7];
+			const rEl = pose.keypoints[8];
+			const lWr = pose.keypoints[9];
+			const rWr = pose.keypoints[10];
+
+			if (rWr.score > 0.5 && rWr.position.y < rEl.position.y && rWr.position.x > rSh.position.x) {
+				let rAngle = (findAngle(rSh.position, rEl.position, rWr.position) * 180) / Math.PI
+				if (rAngle < 90.0) {
+					right = true;
+				}
+			}
+			if (lWr.score > 0.5 && lWr.position.y < lEl.position.y && lWr.position.x < lSh.position.x) {
+				let lAngle = (findAngle(lSh.position, lEl.position, lWr.position) * 180) / Math.PI
+				if (lAngle < 90.0) {
+					left = true;
+				}
+			}
+			if (lWr.score > 0.3 && rWr.score > 0.3 && lWr.position.x > lSh.position.x && rWr.position.x < rSh.position.x) {
+				jump = true;
+			}
+
+			if (jump === true) {
+				console.log("Jump");
+				// Doing the Jump animation
+				// freezeTime = 1;
+				// setInterval(decrement, 1000);
+				playerObject.position.y += 0.25;
+			}
+			else if (left === true && canGoLeft) {//left
+				canGoLeft = false;
+				console.log("Left");
+				if (currentLane === middleLane) {
+					currentLane = leftLane;
+					canGoLeft = true;
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				} else if (currentLane === rightLane) {
+					currentLane = middleLane;
+					setTimeout(()=>{
+						canGoLeft = true;
+						console.log("Left made true");
+					}, 1000);
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				} else {
+					canGoLeft = true;
+				}
+			} else if (right === true && canGoRight) {//right
+				canGoRight = false;
+				console.log("Right");
+				if (currentLane === middleLane) {
+					currentLane = rightLane;
+					canGoRight = true;
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				} else if (currentLane === leftLane) {
+					currentLane = middleLane;
+					setTimeout(()=>{
+						canGoRight = true;
+						console.log("Right made true");
+					}, 1000);
+					// freezeTime = 1;
+					// setInterval(decrement, 1000);
+				} else {
+					canGoRight = true;
+				}
+			}
+		}
+
+		async function estimatePoseOnImage(imageElement) {
+			// if (freezeTime > 0) {
+			// 	return null;
+			// }
+
+			// estimate poses
+			const poses = await net.estimateSinglePose(imageElement, { flipHorizontal: true });
+
+			return poses;
+		}
+
 		// function createTree(){
 		// 	let sides=8;
 		// 	let tiers=6;
@@ -467,6 +607,16 @@ class Game extends Component {
 		// }
 
 		function update(){
+      // Perf: Following block can be called periodically, and not for
+			// every frame
+
+			// BLOCK Start
+			if (canPlayVideo) {
+				estimatePoseOnImage(video).then(poses => validatePose(poses));
+			} else {
+				console.log("Waiting for camera input.");
+			}
+			// BLOCK End
 			rollingGroundSphere.rotation.x += rollingSpeed;
       updateArrows();
 			if(clock.getElapsedTime()>treeReleaseInterval){
@@ -599,8 +749,11 @@ class Game extends Component {
 	}
 
   render(){
-    return (
-      <div style={{width:"100%", height:"100vh"}}id="game"></div>
+		return (
+	  	<div>
+			<video hidden autoPlay={true} id="videoElement"></video>
+			<div style={{ width: "100%", height: "100vh" }} id="game"></div>
+	  </div>
     )
   }
 }
