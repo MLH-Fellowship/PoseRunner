@@ -5,18 +5,14 @@ import Jumping from './assets/Jump2.fbx';
 import will from "./assets/icon.jpg";
 import bg from "./assets/skies/bg8.jpg";
 import txt from "./assets/skies/tile02.png";
-<<<<<<< HEAD
 import deadline from "./assets/logos/hourglass.png";
 import insta from "./assets/logos/Insta.jpg";
 import youtube from "./assets/logos/Youtube.png";
 import anxiety from "./assets/logos/anxiety.jpg";
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
-=======
 import leftArrow from './assets/arrows/left.png';
 import rightArrow from './assets/arrows/right.png';
 import upArrow from './assets/arrows/up.png';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
->>>>>>> 6dcdcb24033e4716f29e9b56af742d172739b447
 import fontJSON from './gentilis_bold.typeface.json';
 
 class Game extends Component {
