@@ -81,12 +81,12 @@ class StartScreen extends Component {
           </p>
         </div>
         <div className={styles.test}>
-          <p>​A browser-based endless runner game with a twist.</p>
-        </div>
-        <div>
-          <p className={styles.howto}> Choose your character </p>
+          <p>"Run" through MLH Fellowship in Outer Space, with your Poses!</p>
         </div>
         <div style={{width:"100%", height: "300px", zIndex:999}} id="character"></div>
+        <div className={styles.test}>
+          <p style={{marginTop: "em"}}> Where there is Will, there is a way!</p>
+        </div>
         <Link to="/game" className={styles.fe_pulse}> PLAY </Link>
       </div>
 		</>
