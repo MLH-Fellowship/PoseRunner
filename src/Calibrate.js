@@ -40,18 +40,18 @@ class CalibrateScreen extends Component {
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(1, 1fr)", gridGap: 0, textAlign: "center", alignItems: "flex-end" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gridGap: 0 }}>
                             <div><img src={hand} width="140px" style={{ transform: "scaleX(-1)" }} alt="Couldn't load."></img></div>
-                            <div style={{ marginLeft: "-100px", padding: "50px" }}>: will trigger "Left"</div>
+                            <div style={{color:'white', marginLeft: "-100px", padding: "50px" }}>: will trigger "Left"</div>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gridGap: 0 }}>
                             <div><img src={hand} width="140px" alt="Couldn't load."></img></div>
-                            <div style={{ marginLeft: "-100px", padding: "50px" }}>: will trigger "Right"</div>
+                            <div style={{color:'white', marginLeft: "-100px", padding: "50px" }}>: will trigger "Right"</div>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gridGap: 0 }}>
                             <div><img src={doubleHand} width="130px" height="175px" style={{ transform: "scaleX(-1)" }} alt="Couldn't load."></img></div>
-                            <div style={{ marginLeft: "-100px", padding: "60px" }}>: will trigger "Jump"</div>
+                            <div style={{color:'white', marginLeft: "-100px", padding: "60px" }}>: will trigger "Jump"</div>
                         </div>
                     </div>
-                    <div style={{ textAlign: "center" }}>
+                    <div style={{color:'white', textAlign: "center" }}>
                         We need to access your webcam for non-shady purposes. *wink*
                         <video className={styles.videoFlip} autoPlay={true} id="videoElement"></video>
                     </div>
