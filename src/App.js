@@ -2,36 +2,23 @@ import React from 'react';
 import Game from './Game';
 import StartScreen from './StartScreen';
 import EndScreen from './EndScreen';
+import {Switch, Route} from "react-router-dom";
 
 class App extends React.Component{
   
-  constructor(props){
-    super(props);
-    this.state = {
-      startGame: false,
-      end: false
-    }
-  }
-
-  startGamePlay = () =>{
-    this.setState({startGame: true});
-  }
-
-  showEndScreen = () => {
-    this.setState({end: true});
-  }
-
-  restartGame = () => {
-    window.location.reload();
-  }
-
   render(){
     return(
-      <>
-        {!this.state.startGame? <StartScreen start={this.startGamePlay}/> : 
-        !this.state.end? <Game showEnd= {this.showEndScreen}/> : 
-        <EndScreen restart= {this.restartGame}/>}
-      </>
+      <Switch>
+        <Route path="/" exact>
+          <StartScreen />
+        </Route>
+        <Route path="/game" exact>
+          <Game />
+        </Route>
+        <Route path="/over" exact>
+          <EndScreen />
+        </Route>
+      </Switch>
     )
   }
 }

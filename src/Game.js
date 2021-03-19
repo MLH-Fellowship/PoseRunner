@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
-//const THREE = window.THREE;
-import bk from './assets/skies/scottstorm_bk.png';
-import up from './assets/skies/scottstorm_up.png';
-import dn from './assets/skies/scottstorm_dn.png';
-import lf from './assets/skies/scottstorm_lf.png';
-import rt from './assets/skies/scottstorm_rt.png';
-import ft from './assets/skies/scottstorm_ft.png';
-import * as THREE from 'three';
-import Running from './assets/Running.fbx';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import * as tf from "@tensorflow/tfjs";
 import * as posenet from "@tensorflow-models/posenet";
+import * as THREE from 'three';
+import Running from './assets/Running.fbx';
+import Jumping from './assets/Jump2.fbx';
+import will from "./assets/icon.jpg";
+import bg from "./assets/skies/bg8.jpg";
+import txt from "./assets/skies/tile02.png";
+import leftArrow from './assets/arrows/left.png';
+import rightArrow from './assets/arrows/right.png';
+import upArrow from './assets/arrows/up.png';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
 
@@ -46,29 +46,58 @@ class Game extends Component {
 		}
 
 		const net = await loadPoseNet();
-    let gameProp = this;
-		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere, heroSphere;
-		let heroRollingSpeed, sphericalHelper, pathAngleValues, currentLane, clock, jumping = false;
-		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided;
+	  componentDidMount() {
+		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere;
+		let sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
+		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided = true;
 		let rollingSpeed=0.008;
 		let worldRadius=26.7;
-		let heroRadius=0.1;
-		let heroBaseY=2.2;
-		let bounceValue=0.2;
-		let gravity=0.0041;
 		let leftLane=-1.25;
 		let rightLane=1.25;
 		let middleLane=0;
 		let treeReleaseInterval=0.5;
-		let particleCount=20;
 		let explosionPower =1.06;
 		let right = 0;
 		// let freezeTime = 0;
+		let lives = 3000;
+		let playerInitialPositionY = 2;
 
 		let vertexArr = [];
 
-		let playerObject, playerMixer, playerLoader, action, isLoaded = false;
-		
+		let playerObject, playerMixer, playerLoader, run, jump, isLoaded = false;
+
+		let LEFT = -0.1,RIGHT = 0.1,UP = 0.1,moveLeft=false, moveRight=false, moveUp = false, leftCube, rightCube, upCube;
+        
+		let createCube = function (direction) {
+			const geometry = new THREE.PlaneGeometry(0.15,0.15);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 1, transparent: true});
+			let cube = new THREE.Mesh(geometry, material);
+
+			let leftTexture = new THREE.TextureLoader().load(leftArrow);
+			let rightTexture = new THREE.TextureLoader().load(rightArrow);
+			let upTexture = new THREE.TextureLoader().load(upArrow);
+
+            if(direction === 'left')
+			{
+				cube.position.set(-0.4,3.7,6);
+				cube.material.map = leftTexture;
+			} else if (direction === 'right')
+			{
+				cube.position.set(0.4,3.7,6);
+				cube.material.map = rightTexture;
+			} else if (direction === 'up')
+			{
+				cube.position.set(0,3.84,6);
+				cube.material.map = upTexture;
+			} else {
+				return 'Not a valid direction'
+			}
+			cube.visible = false;
+			scene.add(cube);
+
+			return cube;
+        };
+
 		init();
 
 		function init() {
@@ -79,38 +108,38 @@ class Game extends Component {
 			update();
 		}
 
-		function createScene(){
-			hasCollided=false;
+		function createScene() {
 			score=0;
 			treesInPath=[];
 			treesPool=[];
 			clock=new THREE.Clock();
 			clock.start();
-			heroRollingSpeed=(rollingSpeed*worldRadius/heroRadius)/5;
 			sphericalHelper = new THREE.Spherical();
 			pathAngleValues=[1.52,1.57,1.62];
 			sceneWidth=window.innerWidth;
 			sceneHeight=window.innerHeight;
 			scene = new THREE.Scene();//the 3d scene
-			scene.fog = new THREE.FogExp2( 0xf0fff0, 0.14 );
+			scene.fog = new THREE.FogExp2( 0xf0fff0, 0.15 );
 			camera = new THREE.PerspectiveCamera( 60, sceneWidth / sceneHeight, 0.1, 1000 );//perspective camera
-			renderer = new THREE.WebGLRenderer({alpha:true});//renderer with transparent backdrop
+			renderer = new THREE.WebGLRenderer({alpha:true, antialias: true});//renderer with transparent backdrop
 			renderer.setClearColor(0xfffafa, 1); 
 			renderer.shadowMap.enabled = true;//enable shadow
 			renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 			renderer.setSize( sceneWidth, sceneHeight );
 			dom = document.getElementById('game');
 			dom.appendChild(renderer.domElement);
-			var cubeTextureLoader = new THREE.CubeTextureLoader();
+
+			var bgLoader = new THREE.TextureLoader().load(bg);
+			// var cubeTextureLoader = new THREE.CubeTextureLoader();
 			/* cubeTextureLoader.setPath( 'assets/skies/' ); */
-			var cubeTexture = cubeTextureLoader.load( [
-				ft, bk,
-				up, dn,
-				rt, lf
-			], ()=>{
-				scene.background = cubeTexture;
-			} );
-			scene.background = cubeTexture;
+			// var cubeTexture = cubeTextureLoader.load( [
+			// 	bg, bg,
+			// 	bg, bg,
+			// 	bg, bg
+			// ], ()=>{
+			// 	scene.background = cubeTexture;
+			// } );
+			scene.background = bgLoader;
 			init_Loader();
 
 			createTreesPool();
@@ -120,32 +149,34 @@ class Game extends Component {
 			addExplosion();
 			
 			camera.position.z = 7.5;
-			camera.position.y = 3.15;
+			camera.position.y = 2.5;
+			camera.rotation.x += 0.15;
 			
-			window.addEventListener('resize', onWindowResize, false);//resize callback
+			leftCube = createCube('left');
+			rightCube = createCube('right');
+			upCube = createCube('up');
 
+			window.addEventListener('resize', onWindowResize, false);//resize callback
 			document.onkeydown = handleKeyDown;
 			
-			// scoreText = document.createElement('div');
-			// scoreText.style.position = 'absolute';
-			// //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-			// scoreText.style.width = 100;
-			// scoreText.style.height = 100;
-			// //scoreText.style.backgroundColor = "blue";
-			// scoreText.innerHTML = "0";
-			// scoreText.style.top = 50 + 'px';
-			// scoreText.style.left = 10 + 'px';
-			// document.body.appendChild(scoreText);
+			scoreText = document.createElement('div');
+			scoreText.style.position = 'absolute';
+			scoreText.style.width = 100;
+			scoreText.style.height = 100;
+			scoreText.innerHTML = "0";
+			scoreText.style.top = 50 + 'px';
+			scoreText.style.left = 10 + 'px';
+			document.body.appendChild(scoreText);
 			
-			// let infoText = document.createElement('div');
-			// infoText.style.position = 'absolute';
-			// infoText.style.width = 100;
-			// infoText.style.height = 100;
-			// infoText.style.backgroundColor = "yellow";
-			// infoText.innerHTML = "UP - Jump, Left/Right - Move";
-			// infoText.style.top = 10 + 'px';
-			// infoText.style.left = 10 + 'px';
-			// document.body.appendChild(infoText);
+			let infoText = document.createElement('div');
+			infoText.style.position = 'absolute';
+			infoText.style.width = 100;
+			infoText.style.height = 100;
+			infoText.style.backgroundColor = "yellow";
+			infoText.innerHTML = "UP - Jump, Left/Right - Move";
+			infoText.style.top = 10 + 'px';
+			infoText.style.left = 10 + 'px';
+			document.body.appendChild(infoText);
 		}
 
 		/**
@@ -154,21 +185,26 @@ class Game extends Component {
 		function init_Loader(){
 			playerLoader = new FBXLoader();
 			playerLoader.load(Running, playerLoad);
-			jumping=false;
 			currentLane=middleLane;
 		}
 
 		function playerLoad(object3d){
 			playerObject = object3d;
 			playerObject.scale.set(0.0025,0.0025,0.0025);
-			playerObject.position.y = 2.3;
-			playerObject.position.z = 6;
+			playerObject.position.y = playerInitialPositionY;
+			playerObject.position.z = 6.2;
 			playerObject.rotateY(185.25);
 			playerObject.receiveShadow = true;
 			playerObject.castShadow = true;
 			playerMixer = new THREE.AnimationMixer(object3d);
-			action = playerMixer.clipAction(object3d.animations[0]);
-			action.play();
+			run = playerMixer.clipAction(object3d.animations[0]);
+			run.play();
+
+			const jumpLoader = new FBXLoader();
+			jumpLoader.load(Jumping, function(object) {
+				jump = playerMixer.clipAction(object.animations[0], object3d);
+			})
+
 			playerMixer.update(0);
 			playerObject.updateMatrix();
 			scene.add(playerObject);
@@ -190,7 +226,7 @@ class Game extends Component {
 			const vertices = new Float32Array(positions);
 			particleGeometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
 			let pMaterial = new THREE.ParticleBasicMaterial({
-				color: 0x006400,
+				color: 0xC0C0C0,
 				size: 0.1
 			});
 			particles = new THREE.Points( particleGeometry, pMaterial );
@@ -209,44 +245,95 @@ class Game extends Component {
 		}
 
 		function handleKeyDown(keyEvent){
-			//if(jumping)return;
-			let validMove=true;
 			if ( keyEvent.keyCode === 37) {//left
+				handleArrows('left');
 				if(currentLane == middleLane){
 					currentLane = leftLane;
 				}else if(currentLane == rightLane){
 					currentLane = middleLane;
-				}else{
-					validMove=false;	
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
-				right = 0.3;
+				handleArrows('right');
 				if(currentLane==middleLane){
 					currentLane=rightLane;
 				}else if(currentLane==leftLane){
 					currentLane=middleLane;
-				}else{
-					validMove=false;	
 				}
 			}else{
-				if ( keyEvent.keyCode === 38){//up, jump
-					playerObject.position.y += 0.25;
+				if ( keyEvent.keyCode === 38 && canJump === true){//up, jump
+                	handleArrows('up');
+					canJump = false;
+					playerObject.position.y += 0.2;
+					playOnClick(run, 0.1, jump, 0.1);
 				}
-				validMove=false;
 			}
-			//heroSphere.position.x=currentLane;
-			// if(validMove){
-			// 	jumping=true;
-			// 	bounceValue=0.07;
-			// }
+		}
+
+		function playOnClick(from, fSpeed, to, tSpeed) {
+			to.setLoop(THREE.LoopOnce);
+			to.reset();
+			to.play();
+
+			from.crossFadeTo(to, fSpeed, true);
+
+			setTimeout(function () {
+				// Switch from jumping animation to running animation
+				var moveDown = setInterval(function () {
+					if (playerObject.position.y < playerInitialPositionY) {
+					playerObject.position.y = playerInitialPositionY;
+					clearInterval(moveDown);
+					}
+					playerObject.position.y -= 0.01;
+				}, 15);
+				from.enabled = true;
+				to.crossFadeTo(from, tSpeed, true);
+				canJump = true;
+			}, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
+		}
+  
+		function handleArrows(dir)
+		{
+			let cube, move;
+			if(dir === 'left')
+			{
+				cube = leftCube;
+				move = moveLeft;
+			} else if (dir === 'right')
+			{
+				cube = rightCube;
+				move = moveRight;
+			} else if (dir === 'up')
+			{
+				cube = upCube;
+				move = moveUp;
+			}
+
+			cube.visible = true;
+			move = true;
+			setTimeout(()=>{
+				move = false;
+				cube.visible = false;
+				if(dir === 'left')
+				{
+					cube.position.x = -0.4;
+				} else if( dir === 'right')
+				{
+					cube.position.x = 0.4;
+				} else if( dir === 'up')
+				{
+					upCube.position.y = 3.84;
+				}
+			},200);
 		}
 
 		function addWorld(){
-			let sides=100;
-			let tiers=40;
-			let sphereGeometry = new THREE.SphereGeometry( worldRadius, sides,tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial( { color: 0x06b011 ,flatShading:THREE.FlatShading} )
-			rollingGroundSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+			let sides=50;
+			let tiers=80;
+			let sphereTexture = new THREE.TextureLoader().load(txt);
+			let sphereGeometry = new THREE.SphereGeometry(worldRadius, sides, tiers);
+			let sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3793, flatShading: THREE.FlatShading, map: sphereTexture });
+			rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+			
 			rollingGroundSphere.receiveShadow = true;
 			rollingGroundSphere.castShadow=false;
 			rollingGroundSphere.rotation.z=-Math.PI/2;
@@ -296,12 +383,11 @@ class Game extends Component {
 				if(treesPool.length == 0)return;
 				newTree=treesPool.pop();
 				newTree.visible = true;
-				//console.log("add tree");
 				treesInPath.push(newTree);
 				sphericalHelper.set( worldRadius - 0.3, pathAngleValues[row], - rollingGroundSphere.rotation.x+4 );
 			}else{
 				newTree=createTree();
-				let forestAreaAngle = 0; //[1.52,1.57,1.62];
+				let forestAreaAngle = 0;
 				if(isLeft){
 					forestAreaAngle=1.68+Math.random()*0.1;
 				}else{
@@ -313,28 +399,57 @@ class Game extends Component {
 			let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
 			let treeVector = newTree.position.clone().normalize();
 			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
-			newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+			//newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
 			
 			rollingGroundSphere.add(newTree);
 		}
 
-		function createTree(){
-			let sides=8;
-			let tiers=6;
-			let treeGeometry = new THREE.ConeGeometry( 0.27, 1, sides, tiers);
-			let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading  } );
-			let treeTop = new THREE.Mesh( treeGeometry, treeMaterial );
-			treeTop.castShadow=true;
-			treeTop.receiveShadow=false;
-			treeTop.position.y=0.9;
-			// treeTop.rotation.y=(Math.random()*(Math.PI));
-			let treeTrunkGeometry = new THREE.CylinderGeometry( 0.1, 0.1,0.5);
-			let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,flatShading:THREE.FlatShading  } );
-			let treeTrunk = new THREE.Mesh( treeTrunkGeometry, trunkMaterial );
-			treeTrunk.position.y=0.25;
-			let tree =new THREE.Object3D();
-			tree.add(treeTrunk);
+		function createTree() {
+			let sides = 8;
+			let tiers = 6;
+			let willTexture = new THREE.TextureLoader().load(will);
+			let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
+			let treeMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff33, flatShading: THREE.FlatShading });
+			let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
+			let treeTop1 = new THREE.Mesh(treeGeometry, treeMaterial);
+			let treeTop2 = new THREE.Mesh(treeGeometry, treeMaterial);
+
+
+			let willGeometry = new THREE.PlaneGeometry(1, 1);
+			let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
+			let willMesh = new THREE.Mesh(willGeometry, willMaterial);
+			willMesh.position.y = 1;
+
+			treeTop.castShadow = true;
+			treeTop.receiveShadow = false;
+			treeTop.position.y = 0.05;
+			treeTop1.castShadow = true;
+			treeTop1.receiveShadow = false;
+			treeTop1.position.y = 0.05;
+			treeTop1.position.x += 0.25;
+			treeTop2.castShadow = true;
+			treeTop2.receiveShadow = false;
+			treeTop2.position.y = 0.05;
+			treeTop2.position.x += 0.5;
+
+			treeTop.rotation.y = 0;
+			treeTop1.rotation.y = 0;
+			treeTop2.rotation.y = 0;
+
+			// (Math.random() * (Math.PI));
+			let treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
+			let trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x886633, flatShading: THREE.FlatShading });
+			let treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
+			treeTrunk.position.y = 0.25;
+			let tree = new THREE.Object3D();
+			// tree.add(treeTrunk);
+			// tree.add(treeTop);
+			// tree.add(willMesh);
+
+			// tree.add(spikeMesh);
 			tree.add(treeTop);
+			tree.add(treeTop1);
+			tree.add(treeTop2);
 			return tree;
 		}
 
@@ -425,9 +540,36 @@ class Game extends Component {
 			return poses;
 		}
 
+		// function createTree(){
+		// 	let sides=8;
+		// 	let tiers=6;
+		// 	let willTexture = new THREE.TextureLoader().load(will);
+		// 	let treeGeometry = new THREE.ConeGeometry(0.27, 1, sides, tiers);
+		// 	let treeMaterial = new THREE.MeshStandardMaterial( { color: 0x33ff33,flatShading:THREE.FlatShading} );
+		// 	let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
 
-		function update() {
-			// Perf: Following block can be called periodically, and not for
+		// 	let willGeometry = new THREE.PlaneGeometry(1, 1);
+		// 	let willMaterial = new THREE.MeshBasicMaterial({ map: willTexture, side: THREE.DoubleSide });
+		// 	let willMesh = new THREE.Mesh(willGeometry, willMaterial);
+		// 	willMesh.position.y = 1;
+
+		// 	treeTop.castShadow = true;
+		// 	treeTop.receiveShadow=false;
+		// 	treeTop.position.y = 0.9;
+
+		// 	treeTop.rotation.y = (Math.random() * (Math.PI));
+		// 	let treeTrunkGeometry = new THREE.CylinderGeometry( 0.1, 0.1,0.5);
+		// 	let trunkMaterial = new THREE.MeshStandardMaterial( { color: 0x886633,flatShading:THREE.FlatShading  } );
+		// 	let treeTrunk = new THREE.Mesh( treeTrunkGeometry, trunkMaterial );
+		// 	treeTrunk.position.y=0.25;
+		// 	let tree =new THREE.Object3D();
+		// 	tree.add(treeTrunk);
+		// 	tree.add(willMesh);
+		// 	return tree;
+		// }
+
+		function update(){
+      // Perf: Following block can be called periodically, and not for
 			// every frame
 
 			// BLOCK Start
@@ -437,52 +579,66 @@ class Game extends Component {
 				console.log("Waiting for camera input.");
 			}
 			// BLOCK End
-
-			//stats.update();
-				//animate
-				rollingGroundSphere.rotation.x += rollingSpeed;
-				// if(playerObject.position.y<=heroBaseY){
-				// 	jumping=false;
-				// 	bounceValue=0.007//(Math.random()*0.04)+0.005;
-				// }
-				// playerObject.position.y+=bounceValue;
-				// playerObject.position.x=THREE.Math.lerp(playerObject.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
-				// bounceValue-=gravity;	
-				if(clock.getElapsedTime()>treeReleaseInterval){
-					clock.start();
-					addPathTree();
-						if(!hasCollided){
-						// score+=2*treeReleaseInterval;
-						// scoreText.innerHTML=score.toString();
-						}
+			rollingGroundSphere.rotation.x += rollingSpeed;
+      updateArrows();
+			if(clock.getElapsedTime()>treeReleaseInterval){
+				clock.start();
+				addPathTree();
+				if(lives > 0){
+					score+=2*treeReleaseInterval;
+					scoreText.innerHTML=score.toString();
 				}
-				if(isLoaded){
-					if(playerObject.position.y > 2.3){
-						playerObject.position.y -= 0.005
-					}
-					playerObject.position.x = THREE.Math.lerp(playerObject.position.x, currentLane, 0.05); //smooth transing while changing lanes
-					playerMixer.update(0.02); //make Aj walking animation
+			}
+			if(isLoaded){
+				if(playerObject.position.y > 2.3){
+					playerObject.position.y -= 0.005
 				}
-				doTreeLogic();
-				doExplosionLogic();
-				render();
-			requestAnimationFrame(update);//request next update
+				playerObject.position.x = THREE.Math.lerp(playerObject.position.x, currentLane, 0.05); //smooth transing while changing lanes
+				playerMixer.update(0.02); //make Aj walking animation
+			}
+			doTreeLogic();
+			doExplosionLogic();
+			render();
+		requestAnimationFrame(update);//request next update
 		}
 
+		function updateArrows()
+		{
+			if(moveLeft)
+			{
+				leftCube.position.x = THREE.Math.lerp(leftCube.position.x, leftCube.position.x += LEFT*3, 0.01);
+			}
+			if(moveRight)
+			{
+				rightCube.position.x = THREE.Math.lerp(rightCube.position.x, rightCube.position.x += RIGHT*3, 0.01);
+			}
+			if(moveUp)
+			{
+				upCube.position.y = THREE.Math.lerp(upCube.position.y, upCube.position.y += UP*3, 0.01);
+			}
+		}
+		
 		function doTreeLogic(){
 			let oneTree;
 			let treePos = new THREE.Vector3();
 			let treesToRemove=[];
-			treesInPath.forEach( function ( element, index ) {
+			treesInPath.forEach( async function ( element, index ) {
 				oneTree=treesInPath[ index ];
 				treePos.setFromMatrixPosition( oneTree.matrixWorld );
 				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
-					if(treePos.distanceTo(playerObject.position)<= 0.65){
-						hasCollided=true;
-						//gameProp.props.showEnd();
+					if(hasCollided && isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						explode();
+						lives -= 1
+						hasCollided=false;
+						console.log(lives);
+						if(lives <= 0){
+							window.location.href="/over";
+						}
+						setTimeout(()=>{
+							hasCollided = true;
+						}, 500)
 					}
 				}
 			});
@@ -493,22 +649,12 @@ class Game extends Component {
 				treesInPath.splice(fromWhere,1);
 				treesPool.push(oneTree);
 				oneTree.visible=false;
-				//console.log("remove tree");
 			});
 		}
 
+
 		function doExplosionLogic(){
 			if(!particles.visible)return;
-			// for (let i = 0; i < particleCount; i ++ ) {
-			// 	particleGeometry.vertices[i].multiplyScalar(explosionPower);
-			// }
-			// if(vertexArr.length !=  0){
-			// 	vertexArr = vertexArr.map(ele => {
-			// 		return ele * explosionPower
-			// 	});
-			// 	console.log(vertexArr);
-			// }
-			// particleGeometry.setFromPoints(vertexArr);
 			vertexArr = [];
 			for (let i = 0; i < 20; i ++ ) {
 				let vertex = new THREE.Vector3();
@@ -517,14 +663,12 @@ class Game extends Component {
 				vertex.z = -0.2+Math.random();
 				vertexArr.push(vertex);
 			}
-			//console.log(vertexArr);
 			particleGeometry.setFromPoints(vertexArr);
 
 			if(explosionPower>1.005){
 				explosionPower-=0.0015;
 			}else{
 				particles.visible=false;
-				console.log("Not explode");
 			}
 			particleGeometry.verticesNeedUpdate = true;
 		}
@@ -541,7 +685,6 @@ class Game extends Component {
 				vertex.z = -0.2+Math.random();
 				vertexArr.push(vertex);
 			}
-			//console.log(vertexArr);
 			particleGeometry.setFromPoints(vertexArr);
 			explosionPower=1.07;
 			particles.visible=true;
@@ -551,10 +694,6 @@ class Game extends Component {
 				renderer.render(scene, camera);//draw
 		}
 
-		function gameOver () {
-			// cancelAnimationFrame( globalRenderID );
-			// window.clearInterval( powerupSpawnIntervalID );
-		}
 		function onWindowResize() {
 			//resize & align
 			sceneHeight = window.innerHeight;
