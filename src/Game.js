@@ -6,7 +6,6 @@ import insta from "./assets/logos/Insta.jpg";
 import youtube from "./assets/logos/Youtube.png";
 import anxiety from "./assets/logos/anxiety.jpg";
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
-import fontJSON from './gentilis_bold.typeface.json';
 
 class Game extends Component {
 
