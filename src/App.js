@@ -1,6 +1,7 @@
 import React from 'react';
 import Game from './Game';
 import StartScreen from './StartScreen';
+import CalibrateScreen from "./Calibrate";
 import EndScreen from './EndScreen';
 import {Switch, Route} from "react-router-dom";
 import { CircularProgress } from '@material-ui/core';
@@ -41,6 +42,9 @@ class App extends React.Component{
           {this.state.character?
           <StartScreen Aj={this.state.character}/>:
           <CircularProgress style={{position:'absolute', top: '50%', left:'50%'}}>{this.loadHandler()}</CircularProgress>}
+        </Route>
+        <Route path="/calibrate" exact>
+          <CalibrateScreen />
         </Route>
         <Route path="/game" exact>
           {this.state.character?

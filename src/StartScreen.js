@@ -87,7 +87,7 @@ class StartScreen extends Component {
         <div className={styles.test}>
           <p style={{marginTop: "em"}}> Where there is Will, there is a way!</p>
         </div>
-        <Link to="/game" className={styles.fe_pulse}> PLAY </Link>
+        <Link to="/calibrate" className={styles.fe_pulse}> Calibrate </Link>
       </div>
 		</>
     )

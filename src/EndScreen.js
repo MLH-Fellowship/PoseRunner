@@ -18,7 +18,7 @@ class EndScreen extends Component {
         <div className={styles.test}>
           <p> Your high score is {window.sessionStorage.getItem("highScore")}. </p>
         </div>
-        <Link to="/game" className={styles.fe_pulse}> PLAY AGAIN </Link>
+        <Link to="/" className={styles.fe_pulse}> PLAY AGAIN </Link>
       </div>
     )
   } 
