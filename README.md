@@ -1,14 +1,30 @@
-### PoseRunner
+# PoseRunner
+<img src="https://user-images.githubusercontent.com/43996118/111834988-61544600-891a-11eb-8fe2-aabe42c2a4b3.png"></img>
 
-PoseRunner is a browser-based endless runner game built with Three.js. Help Aj "run" through the fellowship experience in outer space avoiding as many obstacles on your way.
-For a better experience, we have added a twist- posenet, which uses the webcam to get image feed and analyze the hand gestures. This gives a player the ability to move the character with their gestures.
+PoseRunner is a browser-based endless runner game built with Three.js.
+#### where there is Will, there is a way!
+### "Run" through the MLH Fellowship in outer space, with your poses!
+(also, please avoide as many obstacles as you can, _if_ you can :p)
 
-### Features
-- Player can run endlessly as long as they have their lives secured. They will have a total of 3 lives through the game.
-- MLH fellowship themed
-- Avoid daily obstacles like stress, anxiety, etc.
-- Calibration screen for calibrating hand gestures.
-- Save player's score and high score.
+## It's not just a regular runner game, we have added a special twist for you - PoseNet!
+
+#### Use your webcam to control your character!
+We analyze your arm gestures.
+
+- Doing this will trigger "Right".
+
+<img src="https://raw.githubusercontent.com/Open-Sourced-Olaf/PoseRunner/main/src/assets/Hand.png" width="200px"></img>
+- Doing this^ with your other hand will trigger "Left".
+- Doing this will trigger "Jump".
+
+<img src="https://raw.githubusercontent.com/Open-Sourced-Olaf/PoseRunner/main/src/assets/doubleHand.png" width="200px"></img>
+
+### Key Features
+- Player can run endlessly as long as they have their lives secured. A total of 3 lives are given throughout the game.
+- Theme: MLH Fellowship!
+- Avoid daily obstacles like stress, anxiety, **TikTok**, etc.
+- Calibration screen for calibrating the person to fit in the gestures.
+- Save player's score and high score using browser cache.
 
 ### Run Locally
 - Clone the repo
