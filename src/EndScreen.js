@@ -18,7 +18,7 @@ class EndScreen extends Component {
         <div>
           <p className={styles.howto}> Your previous high score was XX. </p>
         </div>
-        <Link to="/game" className={styles.fe_pulse}> PLAY AGAIN </Link>
+        <Link to="/" className={styles.fe_pulse}> PLAY AGAIN </Link>
       </div>
     )
   } 
