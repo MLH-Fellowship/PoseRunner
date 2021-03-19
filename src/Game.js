@@ -519,17 +519,18 @@ class Game extends Component {
 				jump = true;
 			}
 
-			if (jump === true && canJump === true) {
-				canJump = false;
-				handleArrows('up');
-				console.log("Jump");
-				// Doing the Jump animation
-				// freezeTime = 1;
-				// setInterval(decrement, 1000);
-				playerObject.position.y += 0.2;
-					playOnClick(run, 0.1, jump, 0.1);
-			}
-			else if (left === true && canGoLeft) {//left
+			// if (jump === true && canJump === true) {
+			// 	canJump = false;
+			// 	handleArrows('up');
+			// 	console.log("Jump");
+			// 	// Doing the Jump animation
+			// 	// freezeTime = 1;
+			// 	// setInterval(decrement, 1000);
+			// 	playerObject.position.y += 0.2;
+				
+			// }
+			// else 
+			if (left === true && canGoLeft) {//left
 				canGoLeft = false;
 				handleArrows('left');
 				console.log("Left");
