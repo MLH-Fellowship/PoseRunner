@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import {Link} from "react-router-dom";
 import styles from './StartScreen.module.css';
 
 class StartScreen extends Component {
@@ -17,7 +18,7 @@ class StartScreen extends Component {
         <div>
           <p className={styles.howto}> How to Play? </p>
         </div>
-        <button className={styles.fe_pulse} onClick={this.props.start}> PLAY </button>
+        <Link to="/game" className={styles.fe_pulse}> PLAY </Link>
       </div>
     )
   } 
