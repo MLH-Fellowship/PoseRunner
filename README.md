@@ -2,9 +2,9 @@
 <img src="https://user-images.githubusercontent.com/43996118/111834988-61544600-891a-11eb-8fe2-aabe42c2a4b3.png"></img>
 
 PoseRunner is a browser-based endless runner game built with Three.js.
-#### where there is Will, there is a way!
+#### Where there is Will, there is a way!
 ### "Run" through the MLH Fellowship in outer space, with your poses!
-(also, please avoide as many obstacles as you can, _if_ you can :p)
+(also, please avoid as many obstacles as you can, _if_ you can :p)
 
 ## It's not just a regular runner game, we have added a special twist for you - PoseNet!
 
@@ -36,6 +36,7 @@ We analyze your arm gestures.
 ### Future Changes:
 - Add multiple characters to select from
 - Add more variety of obstacles
+- Power Boosts!
 
 ### How to Contribute:
 - Fork the repo to your GitHub
