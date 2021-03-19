@@ -5,6 +5,10 @@ import Jumping from './assets/Jump2.fbx';
 import will from "./assets/icon.jpg";
 import bg from "./assets/skies/bg8.jpg";
 import txt from "./assets/skies/tile02.png";
+import deadline from "./assets/logos/hourglass.png";
+import insta from "./assets/logos/Insta.jpg";
+import youtube from "./assets/logos/Youtube.png";
+import anxiety from "./assets/logos/anxiety.jpg";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import fontJSON from './gentilis_bold.typeface.json';
 
@@ -303,28 +307,28 @@ class Game extends Component {
 
 		function createStone() {
 			let stoneGeometry = new THREE.DodecahedronGeometry( 0.6, 0);
+
 			let stoneMaterial = new THREE.MeshStandardMaterial( { color: 0xe5f2f2 ,shading:THREE.FlatShading} )
 			let stone = new THREE.Mesh( stoneGeometry, stoneMaterial );
 			stone.receiveShadow = true;
 			stone.castShadow=true;
 
 			let text = createGeometry();
-			text.position.x -= 0.40;
-			text.position.y = 0.5;
+			text.position.y = 0.75;
 			text.position.z += 0.3;
 			stone.add(text);
 			return stone;
 		}
 		function createGeometry() {
-			let textArray = ['Stress', 'Anxiety', 'Deadlines', 'Youtube', 'TikTok'];
-			let num = Math.random()*5;
-			let string = textArray[parseInt(num)];
-            let loader = new THREE.FontLoader();
-            let font = loader.parse(fontJSON);
-            let geometry = new THREE.TextGeometry(string, { font: font, size: 0.15, height: 0.02 });
-            let material = new THREE.MeshBasicMaterial({ color: 0x251455});
-            let text = new THREE.Mesh(geometry, material);
-            return text;
+			let textArray = [youtube, insta, anxiety, deadline];
+			let num = Math.random()*4;
+			console.log(num);
+			let tex = textArray[parseInt(num)];
+            let texture = new THREE.TextureLoader().load(tex);
+			let geometry = new THREE.PlaneGeometry(0.4,0.4);
+			let material = new THREE.MeshBasicMaterial({transparent: true, opacity: 1, map: texture, side: THREE.DoubleSide});
+            let mesh = new THREE.Mesh(geometry, material);
+			return mesh;
         };
 		function createTree() {
 			let sides = 8;
@@ -423,7 +427,6 @@ class Game extends Component {
 					treesToRemove.push(oneTree);
 				}else{//check collision
 					if(hasCollided && isLoaded && ((isTree === false && treePos.distanceTo(playerObject.position)<= 0.45) || (isTree === true && treePos.distanceTo(playerObject.position)<= 0.55))){
-						console.log(treePos.distanceTo(playerObject.position));
 						explode();
 						lives -= 1
 						hasCollided=false;
