@@ -18,7 +18,7 @@ class StartScreen extends Component {
         <div>
           <p className={styles.howto}> How to Play? </p>
         </div>
-        <Link to="/game" className={styles.fe_pulse}> PLAY </Link>
+        <Link to="/calibrate" className={styles.fe_pulse}> Calibrate </Link>
       </div>
     )
   } 

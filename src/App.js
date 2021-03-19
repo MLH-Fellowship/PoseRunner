@@ -1,6 +1,7 @@
 import React from 'react';
 import Game from './Game';
 import StartScreen from './StartScreen';
+import CalibrateScreen from "./Calibrate";
 import EndScreen from './EndScreen';
 import {Switch, Route} from "react-router-dom";
 
@@ -11,6 +12,9 @@ class App extends React.Component{
       <Switch>
         <Route path="/" exact>
           <StartScreen />
+        </Route>
+        <Route path="/calibrate" exact>
+          <CalibrateScreen />
         </Route>
         <Route path="/game" exact>
           <Game />
