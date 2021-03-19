@@ -1,5 +1,5 @@
 .startPage{
-  background-image: url(./images/spaceBg.jpg);
+  background-image: url(./skies/spaceBg.jpg);
 	background-repeat: no-repeat;
 	background-attachment: fixed;
 	background-size: cover;
@@ -12,7 +12,7 @@
 }
 
 .calibratePage {
-  background-image: url(./images/spaceBg.jpg);
+  background-image: url(./skies/spaceBg.jpg);
 }
 
 .verticalenter {

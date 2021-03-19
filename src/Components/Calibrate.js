@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import styles from './StartScreen.module.css';
+import styles from '../assets/StartScreen.module.css';
 import { Link } from 'react-router-dom';
-import hand from "./assets/Hand.png";
-import doubleHand from "./assets/doubleHand.png"
+import hand from "../assets/Hand.png";
+import doubleHand from "../assets/doubleHand.png"
 
 class CalibrateScreen extends Component {
 
