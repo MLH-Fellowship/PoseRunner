@@ -5,7 +5,10 @@ import Jumping from './assets/Jump2.fbx';
 import will from "./assets/icon.jpg";
 import bg from "./assets/skies/bg8.jpg";
 import txt from "./assets/skies/tile02.png";
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import leftArrow from './assets/arrows/left.png';
+import rightArrow from './assets/arrows/right.png';
+import upArrow from './assets/arrows/up.png';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 class Game extends Component {
 
@@ -30,7 +33,39 @@ class Game extends Component {
 		let vertexArr = [];
 
 		let playerObject, playerMixer, playerLoader, run, jump, isLoaded = false;
-		
+
+		let LEFT = -0.1,RIGHT = 0.1,UP = 0.1,moveLeft=false, moveRight=false, moveUp = false, leftCube, rightCube, upCube;
+        
+		let createCube = function (direction) {
+			const geometry = new THREE.PlaneGeometry(0.15,0.15);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 1, transparent: true});
+			let cube = new THREE.Mesh(geometry, material);
+
+			let leftTexture = new THREE.TextureLoader().load(leftArrow);
+			let rightTexture = new THREE.TextureLoader().load(rightArrow);
+			let upTexture = new THREE.TextureLoader().load(upArrow);
+
+            if(direction === 'left')
+			{
+				cube.position.set(-0.4,3.7,6);
+				cube.material.map = leftTexture;
+			} else if (direction === 'right')
+			{
+				cube.position.set(0.4,3.7,6);
+				cube.material.map = rightTexture;
+			} else if (direction === 'up')
+			{
+				cube.position.set(0,3.84,6);
+				cube.material.map = upTexture;
+			} else {
+				return 'Not a valid direction'
+			}
+			cube.visible = false;
+			scene.add(cube);
+
+			return cube;
+        };
+
 		init();
 
 		function init() {
@@ -85,8 +120,11 @@ class Game extends Component {
 			camera.position.y = 2.5;
 			camera.rotation.x += 0.15;
 			
-			window.addEventListener('resize', onWindowResize, false);//resize callback
+			leftCube = createCube('left');
+			rightCube = createCube('right');
+			upCube = createCube('up');
 
+			window.addEventListener('resize', onWindowResize, false);//resize callback
 			document.onkeydown = handleKeyDown;
 			
 			scoreText = document.createElement('div');
@@ -176,12 +214,14 @@ class Game extends Component {
 
 		function handleKeyDown(keyEvent){
 			if ( keyEvent.keyCode === 37) {//left
+				handleArrows('left');
 				if(currentLane == middleLane){
 					currentLane = leftLane;
 				}else if(currentLane == rightLane){
 					currentLane = middleLane;
 				}
 			} else if ( keyEvent.keyCode === 39) {//right
+				handleArrows('right');
 				if(currentLane==middleLane){
 					currentLane=rightLane;
 				}else if(currentLane==leftLane){
@@ -189,6 +229,7 @@ class Game extends Component {
 				}
 			}else{
 				if ( keyEvent.keyCode === 38 && canJump === true){//up, jump
+                	handleArrows('up');
 					canJump = false;
 					playerObject.position.y += 0.2;
 					playOnClick(run, 0.1, jump, 0.1);
@@ -218,6 +259,41 @@ class Game extends Component {
 			}, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
 		}
   
+		function handleArrows(dir)
+		{
+			let cube, move;
+			if(dir === 'left')
+			{
+				cube = leftCube;
+				move = moveLeft;
+			} else if (dir === 'right')
+			{
+				cube = rightCube;
+				move = moveRight;
+			} else if (dir === 'up')
+			{
+				cube = upCube;
+				move = moveUp;
+			}
+
+			cube.visible = true;
+			move = true;
+			setTimeout(()=>{
+				move = false;
+				cube.visible = false;
+				if(dir === 'left')
+				{
+					cube.position.x = -0.4;
+				} else if( dir === 'right')
+				{
+					cube.position.x = 0.4;
+				} else if( dir === 'up')
+				{
+					upCube.position.y = 3.84;
+				}
+			},200);
+		}
+
 		function addWorld(){
 			let sides=50;
 			let tiers=80;
@@ -375,6 +451,7 @@ class Game extends Component {
 
 		function update(){
 			rollingGroundSphere.rotation.x += rollingSpeed;
+      updateArrows();
 			if(clock.getElapsedTime()>treeReleaseInterval){
 				clock.start();
 				addPathTree();
@@ -396,6 +473,22 @@ class Game extends Component {
 		requestAnimationFrame(update);//request next update
 		}
 
+		function updateArrows()
+		{
+			if(moveLeft)
+			{
+				leftCube.position.x = THREE.Math.lerp(leftCube.position.x, leftCube.position.x += LEFT*3, 0.01);
+			}
+			if(moveRight)
+			{
+				rightCube.position.x = THREE.Math.lerp(rightCube.position.x, rightCube.position.x += RIGHT*3, 0.01);
+			}
+			if(moveUp)
+			{
+				upCube.position.y = THREE.Math.lerp(upCube.position.y, upCube.position.y += UP*3, 0.01);
+			}
+		}
+		
 		function doTreeLogic(){
 			let oneTree;
 			let treePos = new THREE.Vector3();
