@@ -13,6 +13,11 @@
 
 .calibratePage {
   background-image: url(./skies/spaceBg.jpg);
+  background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+  height: 100vh;
+  overflow-y: scroll;
 }
 
 .verticalenter {
@@ -54,6 +59,7 @@
   font-size: 2rem;
   overflow: visible;
   text-align: center;
+  color: white;
 }
 
 .css_typing_calib_small{
@@ -64,6 +70,7 @@
   font-size: 1rem;
   overflow: visible;
   text-align: center;
+  color: white;
 }
 
 .css_typing{
@@ -74,7 +81,7 @@
 .css_typing p {
   color: white;
   border-right: .15em solid orange;
-  font-family: fantasy;
+  font-family: fantasy sans-serif;
   font-size: 15vh;
   white-space: nowrap;
   overflow: hidden;
@@ -92,14 +99,9 @@
   margin-top: 1rem;
   font-size: 4.5vh;
   color: white;
-  font-family: fantasy;
+  font-family: fantasy sans-serif;
   text-align: center;
   animation: fadein 10s;
-}
-
-.howto{
-  font-size: xx-large;
-  font-family: "Courier";
 }
 
 .fe_pulse {
