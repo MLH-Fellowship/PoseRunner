@@ -7,6 +7,12 @@ import { CircularProgress } from '@material-ui/core';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
 
 import Aj from './assets/Aj.fbx';
+import will from "./assets/icon.jpg";
+import bg from "./assets/skies/bg8.jpg";
+import txt from "./assets/skies/tile02.png";
+import leftArrow from './assets/arrows/left.png';
+import rightArrow from './assets/arrows/right.png';
+import upArrow from './assets/arrows/up.png';
 
 class App extends React.Component{
   
@@ -38,7 +44,7 @@ class App extends React.Component{
         </Route>
         <Route path="/game" exact>
           {this.state.character?
-          <Game player={this.state.character}/>:
+          <Game player={this.state.character} backGrd={bg} willImg={will} leftA={leftArrow} rightA={rightArrow} jumpA={upArrow} txtr={txt}/>:
           <CircularProgress style={{position:'absolute', top: '50%', left:'50%'}}>{this.loadHandler()}</CircularProgress>}
         </Route>
         <Route path="/over" exact>
