@@ -46,7 +46,6 @@ class Game extends Component {
 		}
 
 		const net = await loadPoseNet();
-	  componentDidMount() {
 		let sceneWidth, sceneHeight, camera, scene, renderer, dom, sun, rollingGroundSphere;
 		let sphericalHelper, pathAngleValues, currentLane, clock, canJump = true;
 		let treesInPath, treesPool, particleGeometry, particles, scoreText, score, hasCollided = true;
