@@ -13,10 +13,10 @@ class EndScreen extends Component {
           </p>
         </div>
         <div className={styles.test}>
-          <p>​You finished with a score of XX.</p>
+          <p>​You finished with a score of {window.sessionStorage.getItem("currentScore")}.</p>
         </div>
-        <div>
-          <p className={styles.howto}> Your previous high score was XX. </p>
+        <div className={styles.test}>
+          <p> Your high score is {window.sessionStorage.getItem("highScore")}. </p>
         </div>
         <Link to="/" className={styles.fe_pulse}> PLAY AGAIN </Link>
       </div>

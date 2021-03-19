@@ -4,13 +4,15 @@
 	background-attachment: fixed;
 	background-size: cover;
   height: 100vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .calibratePage {
-  background-image: url(./images/startbg.png);
+  background-image: url(./images/spaceBg.jpg);
 }
 
 .verticalenter {
@@ -70,13 +72,14 @@
   justify-content: center;
 }
 .css_typing p {
+  color: white;
   border-right: .15em solid orange;
-  font-family: "Courier";
-  font-size: 5rem;
+  font-family: fantasy;
+  font-size: 15vh;
   white-space: nowrap;
   overflow: hidden;
   text-align: center;
-  margin: 3rem 0 0 0;
+  margin: 1rem 0 0 0;
 }
 
 .css_typing p:nth-child(1) {
@@ -87,8 +90,9 @@
 
 .test p {
   margin-top: 1rem;
-  font-size: 2.5rem;
-  font-family: "Courier";
+  font-size: 4.5vh;
+  color: white;
+  font-family: fantasy;
   text-align: center;
   animation: fadein 10s;
 }
@@ -99,12 +103,15 @@
 }
 
 .fe_pulse {
+  color: #C0C0C0;
   margin-top: 2rem;
-  font-size: 5rem;
-  font-family: "Courier";
+  font-size: 15vh;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   animation-name: pulse;
   animation-duration: 3s;
+  background-color: transparent;
   animation-iteration-count: infinite;
+  text-decoration: none;
 }
 
 @keyframes pulse {
