@@ -1,8 +1,8 @@
 import React from 'react';
-import Game from './Game';
-import StartScreen from './StartScreen';
-import CalibrateScreen from "./Calibrate";
-import EndScreen from './EndScreen';
+import Game from './Components/Game';
+import StartScreen from './Components/StartScreen';
+import CalibrateScreen from "./Components/Calibrate";
+import EndScreen from './Components/EndScreen';
 import {Switch, Route} from "react-router-dom";
 import { CircularProgress } from '@material-ui/core';
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import * as THREE from 'three';
-import styles from './StartScreen.module.css';
+import styles from '../assets/StartScreen.module.css';
 import {Link} from "react-router-dom";
 
 class StartScreen extends Component {

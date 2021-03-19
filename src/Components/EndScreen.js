@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import styles from './StartScreen.module.css';
+import styles from '../assets/StartScreen.module.css';
 import { Link } from 'react-router-dom';
 
 class EndScreen extends Component {
