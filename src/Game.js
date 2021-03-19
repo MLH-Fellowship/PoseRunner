@@ -57,6 +57,7 @@ class Game extends Component {
 		let treeReleaseInterval=0.5;
 		let explosionPower =1.06;
 		let right = 0;
+		let canGoLeft = true, canGoRight = true;
 		// let freezeTime = 0;
 		let lives = 3000;
 		let playerInitialPositionY = 2;
@@ -503,27 +504,43 @@ class Game extends Component {
 				// setInterval(decrement, 1000);
 				playerObject.position.y += 0.25;
 			}
-			else if (left === true) {//left
+			else if (left === true && canGoLeft) {//left
+				canGoLeft = false;
 				console.log("Left");
 				if (currentLane === middleLane) {
 					currentLane = leftLane;
+					canGoLeft = true;
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
 				} else if (currentLane === rightLane) {
 					currentLane = middleLane;
+					setTimeout(()=>{
+						canGoLeft = true;
+						console.log("Left made true");
+					}, 1000);
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
+				} else {
+					canGoLeft = true;
 				}
-			} else if (right === true) {//right
+			} else if (right === true && canGoRight) {//right
+				canGoRight = false;
 				console.log("Right");
 				if (currentLane === middleLane) {
 					currentLane = rightLane;
+					canGoRight = true;
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
 				} else if (currentLane === leftLane) {
 					currentLane = middleLane;
+					setTimeout(()=>{
+						canGoRight = true;
+						console.log("Right made true");
+					}, 1000);
 					// freezeTime = 1;
 					// setInterval(decrement, 1000);
+				} else {
+					canGoRight = true;
 				}
 			}
 		}
@@ -627,6 +644,7 @@ class Game extends Component {
 				if(treePos.z>6 &&oneTree.visible){ //gone out of our view zone
 					treesToRemove.push(oneTree);
 				}else{//check collision
+
 					if(hasCollided && isLoaded && treePos.distanceTo(playerObject.position)<= 0.65){
 						explode();
 						lives -= 1
