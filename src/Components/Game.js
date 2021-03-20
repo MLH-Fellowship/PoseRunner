@@ -95,8 +95,8 @@ class Game extends Component {
 
 		let playerObject = this.props.player,
 			playerMixer,
-			run,
-			jump,
+			runAnimation,
+			jumpAnimation,
 			isLoaded = false;
 
 		let LEFT = -0.1,
@@ -123,13 +123,13 @@ class Game extends Component {
 			let upTexture = new THREE.TextureLoader().load(upArrow);
 
 			if (direction === "left") {
-				cube.position.set(-0.4, 3.7, 6);
+				cube.position.set(-0.4, 3.5, 6);
 				cube.material.map = leftTexture;
 			} else if (direction === "right") {
-				cube.position.set(0.4, 3.7, 6);
+				cube.position.set(0.4, 3.5, 6);
 				cube.material.map = rightTexture;
 			} else if (direction === "up") {
-				cube.position.set(0, 3.84, 6);
+				cube.position.set(0, 3.6, 6);
 				cube.material.map = upTexture;
 			} else {
 				return "Not a valid direction";
@@ -226,12 +226,12 @@ class Game extends Component {
 			playerObject.receiveShadow = true;
 			playerObject.castShadow = true;
 			playerMixer = new THREE.AnimationMixer(object3d);
-			run = playerMixer.clipAction(object3d.animations[0]);
-			run.play();
+			runAnimation = playerMixer.clipAction(object3d.animations[0]);
+			runAnimation.play();
 
 			const jumpLoader = new FBXLoader();
 			jumpLoader.load(Jumping, function (object) {
-				jump = playerMixer.clipAction(object.animations[0], object3d);
+				jumpAnimation = playerMixer.clipAction(object.animations[0], object3d);
 			});
 
 			playerMixer.update(0);
@@ -303,7 +303,7 @@ class Game extends Component {
 					handleArrows("up");
 					canJump = false;
 					playerObject.position.y += 0.2;
-					playOnClick(run, 0.1, jump, 0.1);
+					playOnClick(runAnimation, 0.1, jumpAnimation, 0.1);
 				}
 			}
 		}
@@ -353,7 +353,7 @@ class Game extends Component {
 				} else if (dir === "right") {
 					cube.position.x = 0.4;
 				} else if (dir === "up") {
-					upCube.position.y = 3.84;
+					upCube.position.y = 3.6;
 				}
 			}, 200);
 		}
@@ -594,49 +594,40 @@ class Game extends Component {
 				jump = true;
 			}
 
-			if (jump === true) {
-				console.log("Jump");
-				// Doing the Jump animation
-				// freezeTime = 1;
-				// setInterval(decrement, 1000);
-				playerObject.position.y += 0.25;
+			if (jump === true && canJump === true) {
+				canJump = false;
+				handleArrows("up");
+				playOnClick(runAnimation, 0.1, jumpAnimation, 0.1);
+				playerObject.position.y += 0.2;
 			} else if (left === true && canGoLeft) {
 				//left
 				canGoLeft = false;
-				console.log("Left");
+				handleArrows("left");
 				if (currentLane === middleLane) {
 					currentLane = leftLane;
 					canGoLeft = true;
-					// freezeTime = 1;
-					// setInterval(decrement, 1000);
 				} else if (currentLane === rightLane) {
 					currentLane = middleLane;
 					setTimeout(() => {
 						canGoLeft = true;
 						console.log("Left made true");
 					}, 1000);
-					// freezeTime = 1;
-					// setInterval(decrement, 1000);
 				} else {
 					canGoLeft = true;
 				}
 			} else if (right === true && canGoRight) {
 				//right
 				canGoRight = false;
-				console.log("Right");
+				handleArrows("right");
 				if (currentLane === middleLane) {
 					currentLane = rightLane;
 					canGoRight = true;
-					// freezeTime = 1;
-					// setInterval(decrement, 1000);
 				} else if (currentLane === leftLane) {
 					currentLane = middleLane;
 					setTimeout(() => {
 						canGoRight = true;
 						console.log("Right made true");
 					}, 1000);
-					// freezeTime = 1;
-					// setInterval(decrement, 1000);
 				} else {
 					canGoRight = true;
 				}
