@@ -88,7 +88,7 @@ class StartScreen extends Component {
           <p style={{marginTop: "em"}}> Where there is Will, there is a way!</p>
         </div>
         
-        <div style={{ width: "100%", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gridGap: 500 }}>
+        <div style={{ textAlign: "center", width: "100%", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gridGap: 100 }}>
             <Link to="/game" className={styles.fe_pulse}> Run w/o Poses! </Link>
             <Link to="/calibrate" onClick={() => this.props.handlePoseNet(true)} className={styles.fe_pulse}> Run with Poses! </Link>
         </div>
