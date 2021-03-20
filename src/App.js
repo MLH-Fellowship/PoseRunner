@@ -3,9 +3,9 @@ import Game from './Components/Game';
 import StartScreen from './Components/StartScreen';
 import CalibrateScreen from "./Components/Calibrate";
 import EndScreen from './Components/EndScreen';
-import {Switch, Route} from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import { CircularProgress } from '@material-ui/core';
-import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
 import Aj from './assets/Aj.fbx';
 import will from "./assets/icon.jpg";
@@ -20,7 +20,8 @@ class App extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      character: null
+      character: null,
+      posenet: false,
     }
   }
 
@@ -35,12 +36,16 @@ class App extends React.Component{
     await CharLoader.load(Aj, this.onAjLoad);
   }
 
+  handlePoseNetChange = (value) => {
+    this.setState({ ...this.state, posenet: value });
+  }
+
   render(){
     return(
       <Switch>
         <Route path="/" exact>
           {this.state.character?
-          <StartScreen Aj={this.state.character}/>:
+          <StartScreen Aj={this.state.character} handlePoseNet={this.handlePoseNetChange}/>:
           <CircularProgress style={{position:'absolute', top: '50%', left:'50%'}}>{this.loadHandler()}</CircularProgress>}
         </Route>
         <Route path="/calibrate" exact>
@@ -48,7 +53,7 @@ class App extends React.Component{
         </Route>
         <Route path="/game" exact>
           {this.state.character?
-          <Game player={this.state.character} backGrd={bg} willImg={will} leftA={leftArrow} rightA={rightArrow} jumpA={upArrow} txtr={txt}/>:
+          <Game player={this.state.character} usePoseNet={this.state.posenet} backGrd={bg} willImg={will} leftA={leftArrow} rightA={rightArrow} jumpA={upArrow} txtr={txt}/>:
           <CircularProgress style={{position:'absolute', top: '50%', left:'50%'}}>{this.loadHandler()}</CircularProgress>}
         </Route>
         <Route path="/over" exact>

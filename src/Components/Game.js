@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+// We need to import tf to set the TensorFlow's JavaScript backend
 import * as tf from "@tensorflow/tfjs";
 import * as posenet from "@tensorflow-models/posenet";
 import * as THREE from "three";
@@ -28,17 +29,18 @@ class Game extends Component {
 
 		var video = document.querySelector("#videoElement");
 
-		if (navigator.mediaDevices.getUserMedia) {
-			navigator.mediaDevices
-				.getUserMedia({ video: true })
-				.then(function (stream) {
-					video.srcObject = stream;
-				})
-				.catch(function (err0r) {
-					console.log("Something went wrong!");
-				});
-		}
-		if (video) {
+		if (this.props.usePoseNet) {
+			if (navigator.mediaDevices.getUserMedia) {
+				navigator.mediaDevices
+					.getUserMedia({ video: true })
+					.then(function (stream) {
+						video.srcObject = stream;
+					})
+					.catch(function (error) {
+						// No video stream
+						// Or waiting for input stream
+					});
+			}
 			video.addEventListener(
 				"loadeddata",
 				function () {
@@ -80,6 +82,7 @@ class Game extends Component {
 			score,
 			hasCollided = true;
 		let rollingSpeed = 0.008;
+		let fogIntensity = 0.10;
 		let worldRadius = 26.7;
 		let leftLane = -1.25;
 		let rightLane = 1.25;
@@ -161,7 +164,7 @@ class Game extends Component {
 			sceneWidth = window.innerWidth;
 			sceneHeight = window.innerHeight;
 			scene = new THREE.Scene(); //the 3d scene
-			scene.fog = new THREE.FogExp2(0xf0fff0, 0.15);
+			scene.fog = new THREE.FogExp2(0xf0fff0, fogIntensity);
 			camera = new THREE.PerspectiveCamera(
 				60,
 				sceneWidth / sceneHeight,
@@ -266,7 +269,6 @@ class Game extends Component {
 			particles = new THREE.Points(particleGeometry, pMaterial);
 			scene.add(particles);
 			particles.visible = true;
-			console.log(particleGeometry.getAttribute("position"));
 		}
 
 		function createTreesPool() {
@@ -463,7 +465,6 @@ class Game extends Component {
 		function createGeometry() {
 			let textArray = [youtube, insta, anxiety, deadline];
 			let num = Math.random() * 4;
-			console.log(num);
 			let tex = textArray[parseInt(num)];
 			let texture = new THREE.TextureLoader().load(tex);
 			let geometry = new THREE.PlaneGeometry(0.4, 0.4);
@@ -610,7 +611,6 @@ class Game extends Component {
 					currentLane = middleLane;
 					setTimeout(() => {
 						canGoLeft = true;
-						console.log("Left made true");
 					}, 1000);
 				} else {
 					canGoLeft = true;
@@ -626,7 +626,6 @@ class Game extends Component {
 					currentLane = middleLane;
 					setTimeout(() => {
 						canGoRight = true;
-						console.log("Right made true");
 					}, 1000);
 				} else {
 					canGoRight = true;
@@ -651,7 +650,7 @@ class Game extends Component {
 			if (canPlayVideo) {
 				estimatePoseOnImage(video).then((poses) => validatePose(poses));
 			} else {
-				console.log("Waiting for camera input.");
+				// Waiting for camera input
 			}
 			// BLOCK End
 			rollingGroundSphere.rotation.x += rollingSpeed;
