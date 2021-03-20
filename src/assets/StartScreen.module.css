@@ -107,7 +107,7 @@
 .fe_pulse {
   color: #C0C0C0;
   margin-top: 2rem;
-  font-size: 15vh;
+  font-size: 10vh;
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   animation-name: pulse;
   animation-duration: 3s;
