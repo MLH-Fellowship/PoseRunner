@@ -40,12 +40,14 @@ We analyze your arm gestures.
 
 ### How to Contribute:
 1. Fork the repo to your GitHub
-2. Clone locally and navigate into the repo
-3. Set upstream to the original(our) repo
-4. Make a new branch
+2. Clone locally and navigate into your version of the repo
+3. Set upstream to the original(our) repo `git remote add upstream https://github.com/MLH-Fellowship/PoseRunner.git`
+4. Make a new branch `git checkout -b newbranch`
 5. Make changes
 6. Make sure you pull upstream's main branch to local main to ensure updated changes get applied.
-  - If there are new changes added to the main branch you might need to rebase and resolve conflict(if any)
+  - If there is no conflict, then you can just make the PR as it is.  
+  - If there are new changes added to the main branch you might need to rebase `git rebase main` and resolve conflict(if any)
+  - Once the conflict is resolved, then `git rebase --continue`
 7. Push to your repo
 8. Make a pull request and we will review it. :)
 
