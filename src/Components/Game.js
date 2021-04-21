@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 // We need to import tf to set the TensorFlow's JavaScript backend
+// eslint-disable-next-line no-unused-vars
 import * as tf from "@tensorflow/tfjs";
-import * as posenet from "@tensorflow-models/posenet";
 import * as THREE from "three";
 import Jumping from "../assets/Jump2.fbx";
 import deadline from "../assets/logos/hourglass.png";
@@ -9,23 +9,10 @@ import insta from "../assets/logos/Insta.jpg";
 import youtube from "../assets/logos/Youtube.png";
 import anxiety from "../assets/logos/anxiety.jpg";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-
+import { estimatePoseOnImage, findAngle, explode, createTreesPool, loadPoseNet, createCube, addPathTree, addWorld, addExplosion, addLight, updateArrows, doExplosionLogic } from './functions/index.js'
 class Game extends Component {
 	async componentDidMount() {
 		var canPlayVideo = false;
-
-		let loadPoseNet = function () {
-			return posenet
-				.load({
-					architecture: "MobileNetV1",
-					outputStride: 16,
-					inputResolution: { width: 640, height: 480 },
-					multiplier: 0.5,
-				})
-				.then((res) => {
-					return res;
-				});
-		};
 
 		var video = document.querySelector("#videoElement");
 
@@ -112,37 +99,6 @@ class Game extends Component {
 			rightCube,
 			upCube;
 
-		let createCube = function (direction) {
-			const geometry = new THREE.PlaneGeometry(0.15, 0.15);
-			const material = new THREE.MeshBasicMaterial({
-				color: 0xffffff,
-				opacity: 1,
-				transparent: true,
-			});
-			let cube = new THREE.Mesh(geometry, material);
-
-			let leftTexture = new THREE.TextureLoader().load(leftArrow);
-			let rightTexture = new THREE.TextureLoader().load(rightArrow);
-			let upTexture = new THREE.TextureLoader().load(upArrow);
-
-			if (direction === "left") {
-				cube.position.set(-0.4, 3.5, 6);
-				cube.material.map = leftTexture;
-			} else if (direction === "right") {
-				cube.position.set(0.4, 3.5, 6);
-				cube.material.map = rightTexture;
-			} else if (direction === "up") {
-				cube.position.set(0, 3.6, 6);
-				cube.material.map = upTexture;
-			} else {
-				return "Not a valid direction";
-			}
-			cube.visible = false;
-			scene.add(cube);
-
-			return cube;
-		};
-
 		init();
 
 		function init() {
@@ -183,18 +139,18 @@ class Game extends Component {
 			var bgLoader = new THREE.TextureLoader().load(bg);
 			scene.background = bgLoader;
 
-			createTreesPool();
-			addWorld();
-			addLight();
-			addExplosion();
+			treesPool = createTreesPool(treesPool, youtube, insta, anxiety, deadline);
+			({ txt = {}, worldRadius, rollingGroundSphere, scene, treesPool = {}, treesInPath, sphericalHelper, pathAngleValues, will } = addWorld(txt, worldRadius, rollingGroundSphere, scene, treesPool, treesInPath, sphericalHelper, pathAngleValues, will));
+			({ scene, sun } = addLight(scene, sun));
+			({ particleGeometry, particles, scene } = addExplosion(particleGeometry, particles, scene));
 
 			camera.position.z = 7.5;
 			camera.position.y = 2.5;
 			camera.rotation.x += 0.15;
 
-			leftCube = createCube("left");
-			rightCube = createCube("right");
-			upCube = createCube("up");
+			({ leftCube, scene } = createCube("left", leftArrow, rightArrow, upArrow, scene));
+			({ rightCube, scene } = createCube("right", leftArrow, rightArrow, upArrow, scene));
+			({ upCube, scene } = createCube("up", leftArrow, rightArrow, upArrow, scene));
 
 			window.addEventListener("resize", onWindowResize, false); //resize callback
 			document.onkeydown = handleKeyDown;
@@ -242,44 +198,6 @@ class Game extends Component {
 			scene.add(playerObject);
 			currentLane = middleLane;
 			isLoaded = true; //prevents error while updating if the character is not loaded
-		}
-
-		function addExplosion() {
-			particleGeometry = new THREE.BufferGeometry();
-			let pnt = 50;
-			let positions = [];
-			const n = 2,
-				n2 = n / 2;
-			for (let i = 0; i < pnt; i++) {
-				const x = Math.random() * n - n2;
-				const y = Math.random() * n - n2;
-				const z = Math.random() * n - n2;
-
-				positions.push(x, y, z);
-			}
-			const vertices = new Float32Array(positions);
-			particleGeometry.setAttribute(
-				"position",
-				new THREE.BufferAttribute(vertices, 3)
-			);
-			let pMaterial = new THREE.ParticleBasicMaterial({
-				color: 0xc0c0c0,
-				size: 0.1,
-			});
-			particles = new THREE.Points(particleGeometry, pMaterial);
-			scene.add(particles);
-			particles.visible = true;
-		}
-
-		function createTreesPool() {
-			let maxTreesInPool = 10;
-			let newTree;
-			for (let i = 0; i < maxTreesInPool; i++) {
-				let random = Math.random();
-				if (random < 0.5) newTree = createTree();
-				else newTree = createStone();
-				treesPool.push(newTree);
-			}
 		}
 
 		function handleKeyDown(keyEvent) {
@@ -359,198 +277,6 @@ class Game extends Component {
 				}
 			}, 200);
 		}
-
-		function addWorld() {
-			let sides = 50;
-			let tiers = 80;
-			let sphereTexture = new THREE.TextureLoader().load(txt);
-			let sphereGeometry = new THREE.SphereGeometry(worldRadius, sides, tiers);
-			let sphereMaterial = new THREE.MeshStandardMaterial({
-				color: 0x5a3793,
-				flatShading: THREE.FlatShading,
-				map: sphereTexture,
-			});
-			rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-			rollingGroundSphere.receiveShadow = true;
-			rollingGroundSphere.castShadow = false;
-			rollingGroundSphere.rotation.z = -Math.PI / 2;
-			scene.add(rollingGroundSphere);
-			rollingGroundSphere.position.y = -24.4;
-			rollingGroundSphere.position.z = 2;
-			addWorldTrees();
-		}
-
-		function addLight() {
-			let hemisphereLight = new THREE.HemisphereLight(0xfffafa, 0x000000, 0.9);
-			scene.add(hemisphereLight);
-			sun = new THREE.DirectionalLight(0xcdc1c5, 0.9);
-			sun.position.set(12, 6, -7);
-			sun.castShadow = true;
-			scene.add(sun);
-			//Set up shadow properties for the sun light
-			sun.shadow.mapSize.width = 256;
-			sun.shadow.mapSize.height = 256;
-			sun.shadow.camera.near = 0.5;
-			sun.shadow.camera.far = 50;
-		}
-
-		function addPathTree() {
-			let options = [0, 1, 2];
-			let lane = Math.floor(Math.random() * 3);
-			addTree(true, lane);
-			options.splice(lane, 1);
-			if (Math.random() > 0.5) {
-				lane = Math.floor(Math.random() * 2);
-				addTree(true, options[lane]);
-			}
-		}
-
-		function addWorldTrees() {
-			let numTrees = 36;
-			let gap = 6.28 / 36;
-			for (let i = 0; i < numTrees; i++) {
-				addTree(false, i * gap, true);
-				addTree(false, i * gap, false);
-			}
-		}
-
-		function addTree(inPath, row, isLeft) {
-			let newTree;
-			if (inPath) {
-				if (treesPool.length === 0) return;
-				newTree = treesPool.pop();
-				newTree.visible = true;
-				treesInPath.push(newTree);
-				sphericalHelper.set(
-					worldRadius - 0.3,
-					pathAngleValues[row],
-					-rollingGroundSphere.rotation.x + 4
-				);
-			} else {
-				newTree = createBgTree();
-				let forestAreaAngle = 0;
-				if (isLeft) {
-					forestAreaAngle = 1.68 + Math.random() * 0.1;
-				} else {
-					forestAreaAngle = 1.46 - Math.random() * 0.1;
-				}
-				sphericalHelper.set(worldRadius - 0.3, forestAreaAngle, row);
-			}
-			newTree.position.setFromSpherical(sphericalHelper);
-			let rollingGroundVector = rollingGroundSphere.position
-				.clone()
-				.normalize();
-			let treeVector = newTree.position.clone().normalize();
-			newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
-			rollingGroundSphere.add(newTree);
-		}
-
-		function createStone() {
-			let stoneGeometry = new THREE.DodecahedronGeometry(0.6, 0);
-
-			let stoneMaterial = new THREE.MeshStandardMaterial({
-				color: 0xe5f2f2,
-				shading: THREE.FlatShading,
-			});
-			let stone = new THREE.Mesh(stoneGeometry, stoneMaterial);
-			stone.receiveShadow = true;
-			stone.castShadow = true;
-
-			let text = createGeometry();
-			text.position.y = 0.75;
-			text.position.z += 0.3;
-			stone.add(text);
-			return stone;
-		}
-		function createGeometry() {
-			let textArray = [youtube, insta, anxiety, deadline];
-			let num = Math.random() * 4;
-			let tex = textArray[parseInt(num)];
-			let texture = new THREE.TextureLoader().load(tex);
-			let geometry = new THREE.PlaneGeometry(0.4, 0.4);
-			let material = new THREE.MeshBasicMaterial({
-				transparent: true,
-				opacity: 1,
-				map: texture,
-				side: THREE.DoubleSide,
-			});
-			let mesh = new THREE.Mesh(geometry, material);
-			return mesh;
-		}
-		function createTree() {
-			let sides = 8;
-			let tiers = 6;
-			let treeGeometry = new THREE.ConeGeometry(0.3, 1, sides, tiers);
-			let treeMaterial = new THREE.MeshStandardMaterial({
-				color: 0x7c43ad,
-				flatShading: THREE.FlatShading,
-			});
-			let treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
-			let treeTop1 = new THREE.Mesh(treeGeometry, treeMaterial);
-			let treeTop2 = new THREE.Mesh(treeGeometry, treeMaterial);
-
-			treeTop.castShadow = true;
-			treeTop.receiveShadow = false;
-			treeTop.position.y = 0.6;
-			treeTop1.castShadow = true;
-			treeTop1.receiveShadow = false;
-			treeTop1.position.y = 0.6;
-			treeTop1.position.x -= 0.4;
-			treeTop2.castShadow = true;
-			treeTop2.receiveShadow = false;
-			treeTop2.position.y = 0.6;
-			treeTop2.position.x += 0.4;
-			treeTop.rotation.y = 0;
-			treeTop1.rotation.y = 0;
-			treeTop2.rotation.y = 0;
-
-			let treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
-			let trunkMaterial = new THREE.MeshStandardMaterial({
-				color: 0x886633,
-				flatShading: THREE.FlatShading,
-			});
-			let treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
-			treeTrunk.position.y = 0.25;
-			let tree = new THREE.Object3D();
-			tree.add(treeTop);
-			tree.add(treeTop1);
-
-			return tree;
-		}
-
-		function createBgTree() {
-			let willTexture = new THREE.TextureLoader().load(will);
-
-			let willGeometry = new THREE.PlaneGeometry(1.2, 1.2);
-			let willMaterial = new THREE.MeshBasicMaterial({
-				map: willTexture,
-				side: THREE.DoubleSide,
-				transparent: true,
-				opacity: 1,
-			});
-			let willMesh = new THREE.Mesh(willGeometry, willMaterial);
-			willMesh.position.y = 1.34;
-
-			let treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
-			let trunkMaterial = new THREE.MeshStandardMaterial({
-				color: 0x251455,
-				flatShading: THREE.FlatShading,
-			});
-			let treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
-			treeTrunk.position.y = 0.5;
-			let tree = new THREE.Object3D();
-			tree.add(treeTrunk);
-			tree.add(willMesh);
-			return tree;
-		}
-
-		function findAngle(A, B, C) {
-			var AB = Math.sqrt(Math.pow(B.x - A.x, 2) + Math.pow(A.y - B.y, 2));
-			var BC = Math.sqrt(Math.pow(B.x - C.x, 2) + Math.pow(C.y - B.y, 2));
-			var AC = Math.sqrt(Math.pow(C.x - A.x, 2) + Math.pow(A.y - C.y, 2));
-			return Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB));
-		}
-
 
 		function validatePose(pose) {
 			let left = false;
@@ -633,31 +359,22 @@ class Game extends Component {
 			}
 		}
 
-		async function estimatePoseOnImage(imageElement) {
-			// estimate poses
-			const poses = await net.estimateSinglePose(imageElement, {
-				flipHorizontal: true,
-			});
-
-			return poses;
-		}
-
 		function update() {
 			// Perf: Following block can be called periodically, and not for
 			// every frame
 
 			// BLOCK Start
 			if (canPlayVideo) {
-				estimatePoseOnImage(video).then((poses) => validatePose(poses));
+				estimatePoseOnImage(video, net).then((poses) => validatePose(poses));
 			} else {
 				// Waiting for camera input
 			}
 			// BLOCK End
 			rollingGroundSphere.rotation.x += rollingSpeed;
-			updateArrows();
+			({ moveLeft, leftCube, LEFT, moveRight, rightCube, RIGHT, moveUp, upCube, UP } = updateArrows(moveLeft, leftCube, LEFT, moveRight, rightCube, RIGHT, moveUp, upCube, UP));
 			if (clock.getElapsedTime() > treeReleaseInterval) {
 				clock.start();
-				addPathTree();
+				({ treesPool, treesInPath, sphericalHelper, worldRadius, pathAngleValues, rollingGroundSphere, will } = addPathTree(treesPool, treesInPath, sphericalHelper, worldRadius, pathAngleValues, rollingGroundSphere, will));
 				if (lives > 0) {
 					score += 2 * treeReleaseInterval;
 					scoreText.innerHTML = "Score: " + score.toString();
@@ -675,33 +392,11 @@ class Game extends Component {
 				playerMixer.update(0.02); //make Aj walking animation
 			}
 			doTreeLogic();
-			doExplosionLogic();
+			if (particles.visible) {
+				({ particles, vertexArr, particleGeometry, explosionPower } = doExplosionLogic(particles, vertexArr, particleGeometry, explosionPower));
+			}
 			render();
 			requestAnimationFrame(update); //request next update
-		}
-
-		function updateArrows() {
-			if (moveLeft) {
-				leftCube.position.x = THREE.Math.lerp(
-					leftCube.position.x,
-					(leftCube.position.x += LEFT * 3),
-					0.01
-				);
-			}
-			if (moveRight) {
-				rightCube.position.x = THREE.Math.lerp(
-					rightCube.position.x,
-					(rightCube.position.x += RIGHT * 3),
-					0.01
-				);
-			}
-			if (moveUp) {
-				upCube.position.y = THREE.Math.lerp(
-					upCube.position.y,
-					(upCube.position.y += UP * 3),
-					0.01
-				);
-			}
 		}
 
 		function doTreeLogic() {
@@ -726,7 +421,7 @@ class Game extends Component {
 							(isTree === true &&
 								treePos.distanceTo(playerObject.position) <= 0.55))
 					) {
-						explode();
+						({ particles, playerObject, vertexArr, particleGeometry, explosionPower } = explode(particles, playerObject, vertexArr, THREE, particleGeometry, explosionPower));
 						lives -= 1;
 						lifeText.innerHTML = "Live(s): " + lives.toString();
 						hasCollided = false;
@@ -754,43 +449,6 @@ class Game extends Component {
 				treesPool.push(oneTree);
 				oneTree.visible = false;
 			});
-		}
-
-		function doExplosionLogic() {
-			if (!particles.visible) return;
-			vertexArr = [];
-			for (let i = 0; i < 20; i++) {
-				let vertex = new THREE.Vector3();
-				vertex.x = -0.4 + Math.random();
-				vertex.y = -0.2 + Math.random();
-				vertex.z = -0.2 + Math.random();
-				vertexArr.push(vertex);
-			}
-			particleGeometry.setFromPoints(vertexArr);
-
-			if (explosionPower > 1.005) {
-				explosionPower -= 0.0015;
-			} else {
-				particles.visible = false;
-			}
-			particleGeometry.verticesNeedUpdate = true;
-		}
-
-		function explode() {
-			particles.position.y = 2;
-			particles.position.z = 4.8;
-			particles.position.x = playerObject.position.x;
-			vertexArr = [];
-			for (let i = 0; i < 20; i++) {
-				let vertex = new THREE.Vector3();
-				vertex.x = -0.4 + Math.random();
-				vertex.y = -0.2 + Math.random();
-				vertex.z = -0.2 + Math.random();
-				vertexArr.push(vertex);
-			}
-			particleGeometry.setFromPoints(vertexArr);
-			explosionPower = 1.07;
-			particles.visible = true;
 		}
 
 		function render() {
